@@ -18,8 +18,16 @@ _COMMENT_PATTERN: Final = re.compile(
 )
 
 
+# Inherit from str so that the 'json' module can  serialize it.
+# Can be swapped with enum.StrEnum if only Python 3.11+ is targeted.
+# See also https://stackoverflow.com/q/24481852
+class _StrEnum(str, enum.Enum):
+    def __str__(self) -> str:
+        return self.value
+
+
 @enum.unique
-class RTExecutionMode(enum.Enum):
+class RTExecutionMode(_StrEnum):
     RT_TRANSMITTANCE = "RT_TRANSMITTANCE"
     RT_THERMAL_ONLY = "RT_THERMAL_ONLY"
     RT_SOLAR_AND_THERMAL = "RT_SOLAR_AND_THERMAL"
@@ -28,7 +36,7 @@ class RTExecutionMode(enum.Enum):
 
 
 @enum.unique
-class RTAlgorithm(enum.Enum):
+class RTAlgorithm(_StrEnum):
     RT_MODTRAN = "RT_MODTRAN"
     RT_CORRK_SLOW = "RT_CORRK_SLOW"
     RT_CORRK_FAST = "RT_CORRK_FAST"
@@ -37,7 +45,7 @@ class RTAlgorithm(enum.Enum):
 
 
 @enum.unique
-class RTMultipleScattering(enum.Enum):
+class RTMultipleScattering(_StrEnum):
     RT_NO_MULTIPLE_SCATTER = "RT_NO_MULTIPLE_SCATTER"
     RT_DISORT = "RT_DISORT"
     RT_DISORT_AT_OBS = "RT_DISORT_AT_OBS"
@@ -48,7 +56,7 @@ class RTMultipleScattering(enum.Enum):
 
 
 @enum.unique
-class AtmosphereModel(enum.Enum):
+class AtmosphereModel(_StrEnum):
     ATM_CONSTANT = "ATM_CONSTANT"
     ATM_TROPICAL = "ATM_TROPICAL"
     ATM_MIDLAT_SUMMER = "ATM_MIDLAT_SUMMER"
@@ -61,7 +69,7 @@ class AtmosphereModel(enum.Enum):
 
 
 @enum.unique
-class AtmosphereProfileType(enum.Enum):
+class AtmosphereProfileType(_StrEnum):
     PROF_USER_DEF = "PROF_USER_DEF"
     PROF_ALTITUDE = "PROF_ALTITUDE"
     PROF_PRESSURE = "PROF_PRESSURE"
@@ -155,7 +163,7 @@ class AtmosphereProfileType(enum.Enum):
 
 
 @enum.unique
-class AtmosphereProfileUnits(enum.Enum):
+class AtmosphereProfileUnits(_StrEnum):
     UNT_UNKNOWN = "UNT_UNKNOWN"
     UNT_KILOMETERS = "UNT_KILOMETERS"
     UNT_TKELVIN = "UNT_TKELVIN"
@@ -173,7 +181,7 @@ class AtmosphereProfileUnits(enum.Enum):
 
 
 @enum.unique
-class AerosolHaze(enum.Enum):
+class AerosolHaze(_StrEnum):
     AER_NONE = "AER_NONE"
     AER_RURAL = "AER_RURAL"
     AER_RURAL_DENSE = "AER_RURAL_DENSE"
@@ -188,14 +196,14 @@ class AerosolHaze(enum.Enum):
 
 
 @enum.unique
-class AerosolSeason(enum.Enum):
+class AerosolSeason(_StrEnum):
     SEASN_AUTO = "SEASN_AUTO"
     SEASN_SPRING_SUMMER = "SEASN_SPRING_SUMMER"
     SEASN_FALL_WINTER = "SEASN_FALL_WINTER"
 
 
 @enum.unique
-class AerosolStratospheric(enum.Enum):
+class AerosolStratospheric(_StrEnum):
     STRATO_BACKGROUND = "STRATO_BACKGROUND"
     STRATO_MODERATE_VOLCANIC_AGED = "STRATO_MODERATE_VOLCANIC_AGED"
     STRATO_HIGH_VOLCANIC_FRESH = "STRATO_HIGH_VOLCANIC_FRESH"
@@ -207,7 +215,7 @@ class AerosolStratospheric(enum.Enum):
 
 
 @enum.unique
-class AerosolCloud(enum.Enum):
+class AerosolCloud(_StrEnum):
     CLOUD_NONE = "CLOUD_NONE"
     CLOUD_CUMULUS = "CLOUD_CUMULUS"
     CLOUD_ALTOSTRATUS = "CLOUD_ALTOSTRATUS"
@@ -222,18 +230,6 @@ class AerosolCloud(enum.Enum):
     CLOUD_USER_DEFINED = "CLOUD_USER_DEFINED"
     CLOUD_CIRRUS = "CLOUD_CIRRUS"
     CLOUD_CIRRUS_THIN = "CLOUD_CIRRUS_THIN"
-
-
-class ModtranInput(TypedDict, total=False):
-    # noinspection PyTypedDict
-    __pydantic_config__ = ConfigDict(extra="forbid")
-    NAME: str
-    DESCRIPTION: str
-    CASE: int
-    CASE_TEMPLATE: int
-    RTOPTIONS: RTOptions
-    ATMOSPHERE: Atmosphere
-    AEROSOLS: Aerosol
 
 
 class RTOptions(TypedDict, total=False):
