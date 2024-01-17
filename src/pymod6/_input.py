@@ -275,6 +275,14 @@ class Atmosphere(TypedDict, total=False):
     AIRMWT: float
 
 
+class AtmosphereProfile(TypedDict, total=False):
+    TYPE: AtmosphereProfileType
+    UNITS: AtmosphereProfileUnits
+    UNAME: str
+    PROFILE: list[float]
+    PRO_MASK: list[Literal[-1, 0, 1, 2, 3, 4, 5, 6]]
+
+
 class Aerosol(TypedDict, total=False):
     IHAZE: AerosolHaze
     VIS: float
@@ -312,16 +320,132 @@ class Aerosol(TypedDict, total=False):
     CLDSPC: object
 
 
-class AtmosphereProfile(TypedDict, total=False):
-    TYPE: AtmosphereProfileType
-    UNITS: AtmosphereProfileUnits
-    UNAME: str
-    PROFILE: list[float]
-    PRO_MASK: list[Literal[-1, 0, 1, 2, 3, 4, 5, 6]]
+class Geometry(TypedDict, total=False):
+    ITYPE: Literal[1, 2, 3, 4]
+    H1ALT: float
+    H2ALT: float
+    OBSZEN: float
+    HRANGE: float
+    BETA: float
+    LENN: Literal[0, 1]
+    BCKZEN: float
+    NLOS: object  # not documented?
+    MLOS: object
+    BENDING: float
+    NSEG: int
+    SURF_DIST: float
+    SEG_ALT: float
+    SEG_ZEN: float
+    SEG_LEN: float
+
+    RAD_E: float
+    CKRANG: float
+    IDAY: int
+
+    IPARM: Literal[0, 1, 2, 10, 11, 12]
+    PARM1: float
+    PARM2: float
+    PARM3: float
+    PARM4: float
+    GMTIME: float
+    TRUEAZ: float
+    ANGLEM: float
+
+
+class Surface(TypedDict, total=False):
+    SURFTYPE: object
+    SURREF: float
+    NSURF: Literal[1, 2]
+    TPTEMP: float
+    AATEMP: float
+    WIDERP: bool
+    GNDALT: float
+    DH2O: float
+    MLTRFL: bool
+    SALBFL: str
+    SURFP: object
+    SURFA: object
+    SURFNLOS: int
+    SURFLOS: list[object]
+
+
+class Spectral(TypedDict, total=False):
+    V1: float
+    V2: float
+    DV: float
+    FWHM: float
+    YFLAG: Literal["T", "R"]
+    XFLAG: Literal["W", "M", "N"]
+    DLIMIT: str
+    FLAGS: object
+    MLFLX: int
+    VRFRAC: float
+    SFWHM: float
+    LSUNFL: object
+    LBMNAM: Literal[" ", "f", "F", "t", "T", "4"]
+    USRSUN: str
+    BMNAME: str
+    FILTNM: str
+    CH2OCM: Literal[" ", "1"]
+
+
+class FileOptions(TypedDict, total=False):
+    NOFILE: Literal[0, 1, 2, "FC_ALLOWALL"]
+    BINARY: bool
+    CKPRNT: bool
+    NOPRNT: Literal[0, 1, 2, 3, -1, -2]
+    MSGPRNT: Literal[0, 1, 2, 3, 4]
+    DATDIR: str
+    FLROOT: str
+    CSVPRNT: str
+    SLIPRNT: str
+    JSONPRNT: str
+    JSONOPT: Literal[
+        0,
+        1,
+        2,
+        3,
+        4,
+        5,
+        6,
+        7,
+        "WRT_NONE",
+        "WRT_STATUS",
+        "WRT_INPUT",
+        "WRT_STAT_INPUT",
+        "WRT_OUTPUTPUT",
+        "WRT_STAT_OUTPUT",
+        "WRT_INPUT_OUTPUT",
+        "WRT_ALL",
+    ]  # todo enum
+
+
+class Toolbox(TypedDict, total=False):
+    OPT: object
+    SMARTI: object
+
+
+class ModtranInput(TypedDict, total=False):
+    # noinspection PyTypedDict
+    __pydantic_config__ = ConfigDict(extra="forbid")
+
+    NAME: str
+    DESCRIPTION: str
+    CASE: int
+    CASE_TEMPLATE: int
+    RTOPTIONS: RTOptions
+    ATMOSPHERE: Atmosphere
+    AEROSOLS: Aerosol
+    GEOMETRY: Geometry
+    SURFACE: Surface
+    SPECTRAL: Spectral
+    FILEOPTIONS: FileOptions  # FileOptions
+    TOOLBOX: object
 
 
 class Case(TypedDict, total=False):
     MODTRANINPUT: ModtranInput
+    MODTRANSTATUS: object
 
 
 class JSONInput(TypedDict, total=True):
