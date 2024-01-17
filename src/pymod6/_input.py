@@ -7,7 +7,7 @@ from __future__ import annotations
 import enum
 import json
 import re
-from typing import Any, Final, Literal
+from typing import Any, Final, Literal, overload
 
 import pydantic
 from pydantic import ConfigDict
@@ -60,6 +60,7 @@ class AtmosphereModel(enum.Enum):
     ATM_USER_PRESS_PROFILE = "ATM_USER_PRESS_PROFILE"
 
 
+@enum.unique
 class AtmosphereProfileType(enum.Enum):
     PROF_USER_DEF = "PROF_USER_DEF"
     PROF_ALTITUDE = "PROF_ALTITUDE"
@@ -153,6 +154,7 @@ class AtmosphereProfileType(enum.Enum):
     PROF_ICHR = "PROF_ICHR"
 
 
+@enum.unique
 class AtmosphereProfileUnits(enum.Enum):
     UNT_UNKNOWN = "UNT_UNKNOWN"
     UNT_KILOMETERS = "UNT_KILOMETERS"
@@ -170,6 +172,58 @@ class AtmosphereProfileUnits(enum.Enum):
     UNT_REL_HUMIDITY = "UNT_REL_HUMIDITY"
 
 
+@enum.unique
+class AerosolHaze(enum.Enum):
+    AER_NONE = "AER_NONE"
+    AER_RURAL = "AER_RURAL"
+    AER_RURAL_DENSE = "AER_RURAL_DENSE"
+    AER_MARITIME_NAVY = "AER_MARITIME_NAVY"
+    AER_MARITIME = "AER_MARITIME"
+    AER_URBAN = "AER_URBAN"
+    AER_TROPOSPHERIC = "AER_TROPOSPHERIC"
+    AER_USER_DEFINED = "AER_USER_DEFINED"
+    AER_FOG_ADVECTIVE = "AER_FOG_ADVECTIVE"
+    AER_FOG_RADIATIVE = "AER_FOG_RADIATIVE"
+    AER_DESERT = "AER_DESERT"
+
+
+@enum.unique
+class AerosolSeason(enum.Enum):
+    SEASN_AUTO = "SEASN_AUTO"
+    SEASN_SPRING_SUMMER = "SEASN_SPRING_SUMMER"
+    SEASN_FALL_WINTER = "SEASN_FALL_WINTER"
+
+
+@enum.unique
+class AerosolStratospheric(enum.Enum):
+    STRATO_BACKGROUND = "STRATO_BACKGROUND"
+    STRATO_MODERATE_VOLCANIC_AGED = "STRATO_MODERATE_VOLCANIC_AGED"
+    STRATO_HIGH_VOLCANIC_FRESH = "STRATO_HIGH_VOLCANIC_FRESH"
+    STRATO_HIGH_VOLCANIC_AGED = "STRATO_HIGH_VOLCANIC_AGED"
+    STRATO_MODERATE_VOLCANIC_FRESH = "STRATO_MODERATE_VOLCANIC_FRESH"
+    STRATO_MODERATE_VOLCANIC_BACKGROUND = "STRATO_MODERATE_VOLCANIC_BACKGROUND"
+    STRATO_HIGH_VOLCANIC_BACKGROUND = "STRATO_HIGH_VOLCANIC_BACKGROUND"
+    STRATO_EXTREME_VOLCANIC_FRESH = "STRATO_EXTREME_VOLCANIC_FRESH"
+
+
+@enum.unique
+class AerosolCloud(enum.Enum):
+    CLOUD_NONE = "CLOUD_NONE"
+    CLOUD_CUMULUS = "CLOUD_CUMULUS"
+    CLOUD_ALTOSTRATUS = "CLOUD_ALTOSTRATUS"
+    CLOUD_STRATUS = "CLOUD_STRATUS"
+    CLOUD_STRATOCUMULUS = "CLOUD_STRATOCUMULUS"
+    CLOUD_NIMBOSTRATUS = "CLOUD_NIMBOSTRATUS"
+    CLOUD_RAIN_DRIZZLE = "CLOUD_RAIN_DRIZZLE"
+    CLOUD_RAIN_LIGHT = "CLOUD_RAIN_LIGHT"
+    CLOUD_RAIN_MODERATE = "CLOUD_RAIN_MODERATE"
+    CLOUD_RAIN_HEAVY = "CLOUD_RAIN_HEAVY"
+    CLOUD_RAIN_EXTREME = "CLOUD_RAIN_EXTREME"
+    CLOUD_USER_DEFINED = "CLOUD_USER_DEFINED"
+    CLOUD_CIRRUS = "CLOUD_CIRRUS"
+    CLOUD_CIRRUS_THIN = "CLOUD_CIRRUS_THIN"
+
+
 class ModtranInput(TypedDict, total=False):
     # noinspection PyTypedDict
     __pydantic_config__ = ConfigDict(extra="forbid")
@@ -179,6 +233,7 @@ class ModtranInput(TypedDict, total=False):
     CASE_TEMPLATE: int
     RTOPTIONS: RTOptions
     ATMOSPHERE: Atmosphere
+    AEROSOLS: Aerosol
 
 
 class RTOptions(TypedDict, total=False):
@@ -222,6 +277,43 @@ class Atmosphere(TypedDict, total=False):
     AYRANGFL: str
     E_MASS: float
     AIRMWT: float
+
+
+class Aerosol(TypedDict, total=False):
+    IHAZE: AerosolHaze
+    VIS: float
+    WSS: float
+    WHH: float
+    ICSTL: Literal[1, 2, 3, 4, 5, 6, 7, 8, 9, 10]
+    ISEASN: AerosolSeason
+    IVULCN: AerosolStratospheric
+    ICLD: AerosolCloud
+    RAINRT: float
+    IPH: Literal[0, 1, 2]
+    HGPF: float
+
+    H2OAER: bool
+    CNOVAM: bool
+    ARUSS: Literal["USS", "SAP", "DEFAULT", "   "]
+    SAPFILE: str
+    IVSA: bool
+    ZCVSA: float
+    ZTVSA: float
+    ZINVSA: float
+
+    ASTMX: float
+    CDASTM: Literal["b", "B", "t", "T", "d", "D", "f"]  # TODO: "f" not documented?
+    ASTMC: float
+    ASTMO: float
+
+    # TODO Flexible aerosol options
+    SSALB: object
+    APLUS: Literal["  ", "A+"]
+    REGALT: object
+    PHASEFN: object
+    IREGSPC: object
+    CLDALT: object
+    CLDSPC: object
 
 
 class AtmosphereProfile(TypedDict, total=False):
