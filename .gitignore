@@ -1,0 +1,11 @@
+# Build and tooling artifacts
+__pycache__/
+/dist/
+/.mypy_cache/
+/.pytest_cache/
+
+# IDEs
+/.idea/
+
+# Misc.
+/.local/
