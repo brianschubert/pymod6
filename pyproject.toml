@@ -12,6 +12,7 @@ packages = [
 python = "^3.9"
 typing-extensions = "^4.9.0"
 pydantic = "^2.5.3"
+numpy = "^1.26.3"
 
 [build-system]
 requires = ["poetry-core"]
