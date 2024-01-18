@@ -420,11 +420,6 @@ class FileOptions(TypedDict, total=False):
     ]  # todo enum
 
 
-class Toolbox(TypedDict, total=False):
-    OPT: object
-    SMARTI: object
-
-
 class ModtranInput(TypedDict, total=False):
     # noinspection PyTypedDict
     __pydantic_config__ = ConfigDict(extra="forbid")
@@ -440,7 +435,14 @@ class ModtranInput(TypedDict, total=False):
     SURFACE: Surface
     SPECTRAL: Spectral
     FILEOPTIONS: FileOptions  # FileOptions
-    TOOLBOX: object
+    TOOLBOX: dict[str, Any]
+
+
+class ModtranStatus(TypedDict, total=False):
+    VERSION: str
+    NAME: str
+    CASE_STATUS: str
+    WARNINGS: str
 
 
 class Case(TypedDict, total=False):
