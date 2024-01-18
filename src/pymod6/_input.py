@@ -23,7 +23,7 @@ _COMMENT_PATTERN: Final = re.compile(
 # See also https://stackoverflow.com/q/24481852
 class _StrEnum(str, enum.Enum):
     def __str__(self) -> str:
-        return self.value
+        return self.value  # type: ignore
 
 
 @enum.unique
@@ -421,9 +421,6 @@ class FileOptions(TypedDict, total=False):
 
 
 class ModtranInput(TypedDict, total=False):
-    # noinspection PyTypedDict
-    __pydantic_config__ = ConfigDict(extra="forbid")
-
     NAME: str
     DESCRIPTION: str
     CASE: int
@@ -452,20 +449,20 @@ class Case(TypedDict, total=False):
 
 class JSONInput(TypedDict, total=True):
     # noinspection PyTypedDict
-    __pydantic_config__ = ConfigDict(extra="forbid")
+    __pydantic_config__ = ConfigDict(extra="forbid")  # type: ignore[misc]
 
     MODTRAN: list[Case]
 
 
 class _CommentedJSONDecoder(json.JSONDecoder):
-    _comment_pattern: re.Pattern
+    _comment_pattern: re.Pattern[str]
 
-    def __init__(self, comment_pattern: str | re.Pattern, **kwargs: Any) -> None:
+    def __init__(self, comment_pattern: str | re.Pattern[str], **kwargs: Any) -> None:
         self._comment_pattern = re.compile(comment_pattern)
         super().__init__(**kwargs)
 
     # noinspection PyMethodOverriding
-    def decode(self, s) -> Any:
+    def decode(self, s: str) -> Any:  # type: ignore[override]
         return super().decode(self._comment_pattern.sub("", s))
 
 
@@ -482,4 +479,4 @@ def read_json_input(
     if validate:
         return pydantic.TypeAdapter(JSONInput).validate_python(input_dict)
 
-    return input_dict
+    return input_dict  # type: ignore
