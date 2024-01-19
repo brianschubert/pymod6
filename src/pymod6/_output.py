@@ -2,9 +2,11 @@ from __future__ import annotations
 
 import contextlib
 import pathlib
-from typing import Any, BinaryIO, ContextManager, TextIO
+from typing import Any, BinaryIO, ContextManager, TextIO, cast
 
 import numpy as np
+
+from . import _util
 
 _AtmoCorrectDataDType = np.dtype(
     [
@@ -35,10 +37,10 @@ def read_acd_text(file: pathlib.Path | TextIO) -> np.ndarray[Any, Any]:
 
 def read_acd_binary(file: pathlib.Path | BinaryIO) -> np.ndarray[Any, Any]:
     cm: ContextManager[BinaryIO]
-    if isinstance(file, BinaryIO):
+    if _util.is_binary_io(file):
         cm = contextlib.nullcontext(file)
     else:
-        cm = open(file, "rb")
+        cm = open(cast("str | pathlib.Path", file), "rb")
 
     with cm as fd:
         buffer = fd.read()

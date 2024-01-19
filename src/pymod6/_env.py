@@ -1,14 +1,15 @@
 from __future__ import annotations
 
 import contextlib
-import io
 import os
 import pathlib
 import re
 from dataclasses import dataclass
-from typing import ContextManager, Final, Mapping
+from typing import ContextManager, Final, Mapping, TextIO, cast
 
 from typing_extensions import Self
+
+from . import _util
 
 # "Best effort" regex for extracting simple environment variables exports from Bourne
 # family shell files.
@@ -19,7 +20,7 @@ _ENV_EXPORT_PATTERN: Final = re.compile(
 
 
 @dataclass
-class ModEnv:
+class ModtranEnv:
     exe: pathlib.Path
     data: pathlib.Path
 
@@ -38,12 +39,12 @@ class ModEnv:
         return cls(exe=exe, data=data)
 
     @classmethod
-    def from_shell_file(cls, file: str | pathlib.Path | io.TextIOBase) -> Self:
-        cm: ContextManager[io.TextIOBase]
-        if isinstance(file, io.TextIOBase):
+    def from_shell_file(cls, file: str | pathlib.Path | TextIO) -> Self:
+        cm: ContextManager[TextIO]
+        if _util.is_text_io(file):
             cm = contextlib.nullcontext(file)
         else:
-            cm = open(file, "r")
+            cm = open(cast("str | pathlib.Path", file), "r")
 
         with cm as fd:
             text = fd.read()
