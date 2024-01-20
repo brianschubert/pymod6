@@ -232,6 +232,18 @@ class AerosolCloud(_StrEnum):
     CLOUD_CIRRUS_THIN = "CLOUD_CIRRUS_THIN"
 
 
+@enum.unique
+class JSONPrintOpt(enum.IntFlag):
+    WRT_NONE = 0
+    WRT_STATUS = 1
+    WRT_INPUT = 2
+    WRT_STAT_INPUT = 3
+    WRT_OUTPUT = 4
+    WRT_STAT_OUTPUT = 5
+    WRT_INPUT_OUTPUT = 6
+    WRT_ALL = 7
+
+
 class RTOptions(TypedDict, total=False):
     IEMSCT: RTExecutionMode
     MODTRN: RTAlgorithm
@@ -400,24 +412,7 @@ class FileOptions(TypedDict, total=False):
     CSVPRNT: str
     SLIPRNT: str
     JSONPRNT: str
-    JSONOPT: Literal[
-        0,
-        1,
-        2,
-        3,
-        4,
-        5,
-        6,
-        7,
-        "WRT_NONE",
-        "WRT_STATUS",
-        "WRT_INPUT",
-        "WRT_STAT_INPUT",
-        "WRT_OUTPUTPUT",
-        "WRT_STAT_OUTPUT",
-        "WRT_INPUT_OUTPUT",
-        "WRT_ALL",
-    ]  # todo enum
+    JSONOPT: JSONPrintOpt
 
 
 ModtranInput = TypedDict(
