@@ -420,19 +420,24 @@ class FileOptions(TypedDict, total=False):
     ]  # todo enum
 
 
-class ModtranInput(TypedDict, total=False):
-    NAME: str
-    DESCRIPTION: str
-    CASE: int
-    CASE_TEMPLATE: int
-    RTOPTIONS: RTOptions
-    ATMOSPHERE: Atmosphere
-    AEROSOLS: Aerosol
-    GEOMETRY: Geometry
-    SURFACE: Surface
-    SPECTRAL: Spectral
-    FILEOPTIONS: FileOptions  # FileOptions
-    TOOLBOX: dict[str, Any]
+ModtranInput = TypedDict(
+    "ModtranInput",
+    {
+        "NAME": str,
+        "DESCRIPTION": str,
+        "CASE": int,
+        "CASE TEMPLATE": int,
+        "RTOPTIONS": RTOptions,
+        "ATMOSPHERE": Atmosphere,
+        "AEROSOLS": Aerosol,
+        "GEOMETRY": Geometry,
+        "SURFACE": Surface,
+        "SPECTRAL": Spectral,
+        "FILEOPTIONS": FileOptions,
+        "TOOLBOX": dict[str, Any],
+    },
+    total=False,
+)
 
 
 class ModtranStatus(TypedDict, total=False):
@@ -449,10 +454,10 @@ class Case(TypedDict, total=False):
 
 
 class JSONInput(TypedDict, total=True):
-    # noinspection PyTypedDict
-    __pydantic_config__ = ConfigDict(extra="forbid")  # type: ignore[misc]
-
     MODTRAN: list[Case]
+
+
+JSONInput.__pydantic_config__ = ConfigDict(extra="forbid")  # type: ignore[attr-defined]
 
 
 class _CommentedJSONDecoder(json.JSONDecoder):

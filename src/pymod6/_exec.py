@@ -37,7 +37,7 @@ class ModtranExecutable:
 
     def run_single_case(
         self, input_file: JSONInput
-    ) -> tuple[subprocess.CompletedProcess, _ResultFiles]:
+    ) -> tuple[subprocess.CompletedProcess[str], _ResultFiles]:
         if (num_cases := len(input_file["MODTRAN"])) != 1:
             raise ValueError(
                 f"input file must include exactly on case, got {num_cases}"
@@ -69,7 +69,7 @@ class _ResultFiles:
     Not all files will exist, depending on execution options.
 
     Some files may contain results for multiple cases (e.g. '.csv', '.acd', ...) if
-    the same options are used.
+    the same options are used in multiple cases.
 
     SLI files will have numeric suffixes added if multiple cases use the same SLIPRNT,
     which this class does not account for.
