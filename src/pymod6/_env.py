@@ -55,3 +55,9 @@ class ModtranEnv:
         }
 
         return cls.from_environ(env_exports)
+
+    def to_environ(self) -> dict[str, str]:
+        return {
+            "MODTRAN_EXE": str(self.exe),
+            "MODTRAN_DATA": str(self.data),
+        }
