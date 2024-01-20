@@ -5,7 +5,7 @@ from typing import NamedTuple
 
 from typing_extensions import Unpack
 
-from pymod6._input import FileOptions, JSONInput, ModtranInput
+from pymod6._input import FileOptions, JSONInput, JSONPrintOpt, ModtranInput
 
 
 class ModtranInputBuilder:
@@ -37,14 +37,37 @@ class ModtranInputBuilder:
     def _next_index(self) -> int:
         return len(self._cases)
 
-    def build_json_input(self) -> JSONInput:
+    def build_json_input(
+        self,
+        *,
+        output_legacy: bool = False,
+        output_sli: bool = False,
+        output_csv: bool = False,
+        binary: bool = False,
+        json_opt: JSONPrintOpt = JSONPrintOpt.WRT_NONE,
+    ) -> JSONInput:
         case_digits = 1 + int(math.log10(len(self._cases)))
 
         for case in self._cases:
-            file_options: FileOptions = case.setdefault("FILEOPTIONS", {})
-            file_options["FLROOT"] = self._root_name_format.format(
+            root_name = self._root_name_format.format(
                 case_index=case["CASE"], case_digits=case_digits
             )
+
+            file_options: FileOptions = case.setdefault("FILEOPTIONS", {})
+            file_options["FLROOT"] = root_name
+
+            file_options["JSONPRNT"] = f"{root_name}.json"
+            file_options["JSONOPT"] = json_opt
+
+            file_options["NOFILE"] = 0 if output_legacy else 2
+
+            if output_sli:
+                file_options["SLIPRNT"] = root_name
+
+            if output_csv:
+                file_options["CSVPRNT"] = f"{root_name}.csv"
+
+            file_options["BINARY"] = binary
 
         return {"MODTRAN": [{"MODTRANINPUT": case} for case in self._cases]}
 
