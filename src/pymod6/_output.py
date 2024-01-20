@@ -36,6 +36,8 @@ def read_acd_text(file: pathlib.Path | TextIO) -> np.ndarray[Any, Any]:
 
 
 def read_acd_binary(file: pathlib.Path | BinaryIO) -> np.ndarray[Any, Any]:
+    # TODO check for -9999.0 (00 3C 1C C6) sentinel in header row?
+    # TODO handle multiple cases in one file?
     cm: ContextManager[BinaryIO]
     if _util.is_binary_io(file):
         cm = contextlib.nullcontext(file)
