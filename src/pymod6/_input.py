@@ -390,7 +390,7 @@ class Spectral(TypedDict, total=False):
 
 
 class FileOptions(TypedDict, total=False):
-    NOFILE: Literal[0, 1, 2, "FC_ALLOWALL"]
+    NOFILE: Literal[0, 1, 2, "FC_ALLOWALL", "FC_TAPE6ONLY", "FC_NOFILES"]
     BINARY: bool
     CKPRNT: bool
     NOPRNT: Literal[0, 1, 2, 3, -1, -2]
@@ -445,6 +445,7 @@ class ModtranStatus(TypedDict, total=False):
 class Case(TypedDict, total=False):
     MODTRANINPUT: ModtranInput
     MODTRANSTATUS: object
+    MODTRANOUTPUT: object
 
 
 class JSONInput(TypedDict, total=True):
