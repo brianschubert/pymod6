@@ -55,8 +55,9 @@ class ModtranExecutable:
                 text=True,
             )
 
+        case_input = input_file["MODTRAN"][0]["MODTRANINPUT"]
         return result, _ResultFiles(
-            self._work_dir, input_file["MODTRAN"][0]["MODTRANINPUT"]["FILEOPTIONS"]
+            self._work_dir, case_input["FILEOPTIONS"], case_input.get("NAME")
         )
 
 
@@ -76,6 +77,7 @@ class _ResultFiles:
 
     working_dir: pathlib.Path
     file_options: FileOptions
+    name: str | None
 
     @property
     def json(self) -> pathlib.Path:
@@ -109,50 +111,73 @@ class _ResultFiles:
 
     @property
     def acd_text(self) -> pathlib.Path:
-        return self._flroot_appended(".acd")
+        return self._resolve_legacy_path(".acd", "atmcor.asc")
 
     @property
     def acd_binary(self) -> pathlib.Path:
-        return self._flroot_appended("_b.acd")
+        return self._resolve_legacy_path("_b.acd", "atmcor.bin")
 
     @property
     def tape7_text(self) -> pathlib.Path:
-        return self._flroot_appended(".tp7")
+        return self._resolve_legacy_path(".tp7", "tape7")
 
     @property
     def tape7_binary(self) -> pathlib.Path:
-        return self._flroot_appended("_b.tp7")
+        return self._resolve_legacy_path("_b.tp7", "tap7bin")
 
     @property
     def tape6(self) -> pathlib.Path:
-        return self._flroot_appended(".tp6")
+        return self._resolve_legacy_path(".tp6", "tape6")
 
     @property
     def scan(self) -> pathlib.Path:
-        return self._flroot_appended(".7sc")
+        return self._resolve_legacy_path(".7sc", "tape7.scn")
 
     @property
     def pth(self) -> pathlib.Path:
-        return self._flroot_appended("._pth")
+        return self._resolve_legacy_path("._pth", "rfract._pth")
 
     @property
     def plt_text(self) -> pathlib.Path:
-        return self._flroot_appended(".plt")
+        return self._resolve_legacy_path(".plt", "pltout.asc")
 
     @property
     def plt_binary(self) -> pathlib.Path:
-        return self._flroot_appended("_b.plt")
+        return self._resolve_legacy_path("_b.plt", "pltout.bin")
 
     @property
     def psc(self) -> pathlib.Path:
-        return self._flroot_appended(".psc")
+        return self._resolve_legacy_path(".psc", "pltout.scn")
 
     @property
     def wrn(self) -> pathlib.Path:
-        return self._flroot_appended(".wrn")
+        return self._resolve_legacy_path(".wrn", "warnings.txt")
 
-    def _flroot_appended(self, tail: str) -> pathlib.Path:
-        return self.working_dir.joinpath(f"{self.file_options['FLROOT']}{tail}")
+    def _root_name(self) -> str:
+        try:
+            return self.file_options["FLROOT"].strip()
+        except KeyError:
+            pass
+
+        return "mod6" if self.name is None else self.name.strip()
 
     def _sli_appended(self, tail: str) -> pathlib.Path:
         return self.working_dir.joinpath(f"{self.file_options['SLIPRNT']}{tail}")
+
+    def _resolve_legacy_path(self, tail: str, blank_name: str) -> pathlib.Path:
+        """
+        Resolve filename of legacy output file.
+        """
+        # <ROOT NAME> = FILEOPTIONS.FLROOT if set (even if blank).
+        # If FILEOPTIONS.FLROOT is not set, NAME is used instead.
+        #
+        # If <ROOT NAME> is blank (meaning FILEOPTIONS.FLROOT or NAME is set per the above and contains only spaces),
+        # then default legacy filenames are used. If <ROOT NAME> is unset, (meaining neither FILEOPTIONS.FLROOT or NAME
+        # were set, then <ROOT NAME> = "mod6".
+
+        if (root := self._root_name()) != "":
+            name = f"{root}{tail}"
+        else:
+            name = blank_name
+
+        return self.working_dir.joinpath(name)
