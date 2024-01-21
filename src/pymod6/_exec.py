@@ -35,13 +35,11 @@ class ModtranExecutable:
         )
         return result.stdout.strip()
 
-    def run_single_case(
+    def run_all_cases(
         self, input_file: JSONInput
-    ) -> tuple[subprocess.CompletedProcess[str], _ResultFiles]:
-        if (num_cases := len(input_file["MODTRAN"])) != 1:
-            raise ValueError(
-                f"input file must include exactly on case, got {num_cases}"
-            )
+    ) -> tuple[subprocess.CompletedProcess[str], list[_ResultFiles]]:
+        # TODO: should there be any treatment (different output type, warnings, etc) for output files that are
+        #  written to by multiple cases?
 
         with tempfile.NamedTemporaryFile("w") as temp_file:
             json.dump(input_file, temp_file)
@@ -55,10 +53,15 @@ class ModtranExecutable:
                 text=True,
             )
 
-        case_input = input_file["MODTRAN"][0]["MODTRANINPUT"]
-        return result, _ResultFiles(
-            self._work_dir, case_input["FILEOPTIONS"], case_input.get("NAME")
-        )
+        result_files = [
+            _ResultFiles(
+                self._work_dir,
+                case["MODTRANINPUT"]["FILEOPTIONS"],
+                case["MODTRANINPUT"].get("NAME"),
+            )
+            for case in input_file["MODTRAN"]
+        ]
+        return result, result_files
 
 
 @dataclass
