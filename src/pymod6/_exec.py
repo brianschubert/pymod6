@@ -106,7 +106,13 @@ class _ResultFiles:
 
     @property
     def csv_txt(self) -> pathlib.Path:
-        path = self.working_dir.joinpath(self.file_options["CSVPRNT"])
+        try:
+            csv_root = self.file_options["CSVPRNT"]
+        except KeyError:
+            # CSV file not requested. Return sentinel that should file .exists() checks.
+            csv_root = ".CSVPRNT_NOT_SET"
+
+        path = self.working_dir.joinpath(csv_root)
         # Add .txt suffix only if no suffix is present.
         if path.suffix == "":
             path = path.with_suffix(".txt")
@@ -156,6 +162,17 @@ class _ResultFiles:
     def wrn(self) -> pathlib.Path:
         return self._resolve_legacy_path(".wrn", "warnings.txt")
 
+    def all(self, *, only_existing: bool = False) -> list[pathlib.Path]:
+        file_properties = [
+            getattr(self, name)
+            for name, value in self.__class__.__dict__.items()
+            if isinstance(value, property)
+        ]
+        if only_existing:
+            file_properties = [f for f in file_properties if f.exists()]
+
+        return file_properties
+
     def _root_name(self) -> str:
         try:
             return self.file_options["FLROOT"].strip()
@@ -165,7 +182,12 @@ class _ResultFiles:
         return "mod6" if self.name is None else self.name.strip()
 
     def _sli_appended(self, tail: str) -> pathlib.Path:
-        return self.working_dir.joinpath(f"{self.file_options['SLIPRNT']}{tail}")
+        try:
+            sli_root = self.file_options["SLIPRNT"]
+        except KeyError:
+            # SLI files not requested. Return sentinel that should file .exists() checks.
+            sli_root = ".SLIPRNT_NOT_SET"
+        return self.working_dir.joinpath(f"{sli_root}{tail}")
 
     def _resolve_legacy_path(self, tail: str, blank_name: str) -> pathlib.Path:
         """
