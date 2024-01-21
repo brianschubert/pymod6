@@ -5,7 +5,7 @@ from typing import NamedTuple
 
 from typing_extensions import Unpack
 
-from pymod6._input import FileOptions, JSONInput, JSONPrintOpt, ModtranInput
+from ._json import FileOptions, JSONInput, JSONPrintOpt, ModtranInput
 
 
 class ModtranInputBuilder:

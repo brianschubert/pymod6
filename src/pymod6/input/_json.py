@@ -561,7 +561,7 @@ class ModtranStatus(TypedDict, total=False):
 
 class Case(TypedDict, total=False):
     MODTRANINPUT: ModtranInput
-    MODTRANSTATUS: object
+    MODTRANSTATUS: ModtranStatus
     MODTRANOUTPUT: object
 
 

@@ -7,7 +7,7 @@ import tempfile
 from dataclasses import dataclass
 
 from pymod6._env import ModtranEnv
-from pymod6._input import FileOptions, JSONInput
+from pymod6.input import FileOptions, JSONInput
 
 
 class ModtranExecutable:
