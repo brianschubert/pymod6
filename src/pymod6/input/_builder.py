@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import copy
+import datetime
 import math
 from typing import NamedTuple
 
@@ -25,7 +26,7 @@ class ModtranInputBuilder:
 
     def __init__(
         self,
-        root_name_format: str = "case{case_index:0{case_digits}}",
+        root_name_format: str = "case{case_index:0{case_digits}}",  # {timestamp:%Y-%m-%dT%H-%M-%S}_
     ) -> None:
         self._cases = []
         self._root_name_format = root_name_format
@@ -65,7 +66,9 @@ class ModtranInputBuilder:
 
         for case in self._cases:
             root_name = self._root_name_format.format(
-                case_index=case["CASE"], case_digits=case_digits
+                case_index=case["CASE"],
+                case_digits=case_digits,
+                timestamp=datetime.datetime.now(),
             )
 
             file_options: FileOptions = case.setdefault("FILEOPTIONS", {})
