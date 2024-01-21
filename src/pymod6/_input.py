@@ -7,7 +7,7 @@ from __future__ import annotations
 import enum
 import json
 import re
-from typing import Any, Final, Literal, overload
+from typing import Any, Final, Literal, Union, overload
 
 import pydantic
 from pydantic import ConfigDict
@@ -70,6 +70,8 @@ class AtmosphereModel(_StrEnum):
 
 @enum.unique
 class AtmosphereProfileType(_StrEnum):
+    PROF_UNKNOWN = "PROF_UNKNOWN"
+
     PROF_USER_DEF = "PROF_USER_DEF"
     PROF_ALTITUDE = "PROF_ALTITUDE"
     PROF_PRESSURE = "PROF_PRESSURE"
@@ -233,6 +235,84 @@ class AerosolCloud(_StrEnum):
 
 
 @enum.unique
+class SurfaceType(_StrEnum):
+    REFL_CONSTANT = "REFL_CONSTANT"
+    REFL_LAMBER_MODEL = "REFL_LAMBER_MODEL"
+    REFL_RBDF = "REFL_RBDF"
+
+
+@enum.unique
+class SurfaceBRDFModel(_StrEnum):
+    BRDF_WALTHALL = "BRDF_WALTHALL"
+    BRDF_WALTHALL_ANALYTIC = "BRDF_WALTHALL_ANALYTIC"
+    BRDF_WALTHALL_SINE = "BRDF_WALTHALL_SINE"
+    BRDF_WALTHALL_SINE_ANALYTIC = "BRDF_WALTHALL_SINE_ANALYTIC"
+    BRDF_HAPKE = "BRDF_HAPKE"
+    BRDF_RAHMAN = "BRDF_RAHMAN"
+    BRDF_ROUJEAN = "BRDF_ROUJEAN"
+    BRDF_PINTY_VERSTRAETE = "BRDF_PINTY_VERSTRAETE"
+    BRDF_ROSS_LI = "BRDF_ROSS_LI"
+    BRDF_ROSS_SEA = "BRDF_ROSS_SEA"
+
+
+@enum.unique
+class SurfaceLambertianModel(_StrEnum):
+    LAMB_MODEL_USER_DEF = "LAMB_MODEL_USER_DEF"
+    LAMB_SNOW_COVER = "LAMB_SNOW_COVER"
+    LAMB_FOREST = "LAMB_FOREST"
+    LAMB_FARM = "LAMB_FARM"
+    LAMB_DESERT = "LAMB_DESERT"
+    LAMB_OCEAN = "LAMB_OCEAN"
+    LAMB_CLOUD_DECK = "LAMB_CLOUD_DECK"
+    LAMB_OLD_GRASS = "LAMB_OLD_GRASS"
+    LAMB_DECAYED_GRASS = "LAMB_DECAYED_GRASS"
+    LAMB_MAPLE_LEAF = "LAMB_MAPLE_LEAF"
+    LAMB_BURNT_GRASS = "LAMB_BURNT_GRASS"
+    LAMB_CONST_0_PCT = "LAMB_CONST_0_PCT"
+    LAMB_CONST_5_PCT = "LAMB_CONST_5_PCT"
+    LAMB_CONST_50_PCT = "LAMB_CONST_50_PCT"
+    LAMB_CONST_80_PCT = "LAMB_CONST_80_PCT"
+    LAMB_CONST_30_PCT = "LAMB_CONST_30_PCT"
+    LAMB_CONST_10_PCT = "LAMB_CONST_10_PCT"
+    LAMB_CONST_100_PCT = "LAMB_CONST_100_PCT"
+    LAMB_SEA_ICE_CCM3 = "LAMB_SEA_ICE_CCM3"
+    LAMB_CONIFER = "LAMB_CONIFER"
+    LAMB_OLIVE_GLOSS_PAINT = "LAMB_OLIVE_GLOSS_PAINT"
+    LAMB_DECIDUOUS_TREE = "LAMB_DECIDUOUS_TREE"
+    LAMB_SANDY_LOAM = "LAMB_SANDY_LOAM"
+    LAMB_GRANITE = "LAMB_GRANITE"
+    LAMB_GALVANIZED_STEEL = "LAMB_GALVANIZED_STEEL"
+    LAMB_GRASS = "LAMB_GRASS"
+    LAMB_BLACK_PLASTIC = "LAMB_BLACK_PLASTIC"
+
+    LAMB_ALUMINUM = "LAMB_ALUMINUM"
+    LAMB_ALUMINIUM = "LAMB_ALUMINIUM"
+
+    LAMB_EVERGREEN_NEEDLE_FOREST = "LAMB_EVERGREEN_NEEDLE_FOREST"
+    LAMB_EVERGREEN_BROADLEAF_FOREST = "LAMB_EVERGREEN_BROADLEAF_FOREST"
+    LAMB_DECIDUOUS_NEEDLE_FOREST = "LAMB_DECIDUOUS_NEEDLE_FOREST"
+    LAMB_DECIDUOUS_BROADLEAF_FOREST = "LAMB_DECIDUOUS_BROADLEAF_FOREST"
+    LAMB_FOREST_MIXED = "LAMB_FOREST_MIXED"
+    LAMB_SHRUBS_CLOSED = "LAMB_SHRUBS_CLOSED"
+    LAMB_SHRUBS_OPEN = "LAMB_SHRUBS_OPEN"
+    LAMB_SAVANNA_WOODY = "LAMB_SAVANNA_WOODY"
+    LAMB_SAVANNA = "LAMB_SAVANNA"
+    LAMB_GRASSLAND = "LAMB_GRASSLAND"
+    LAMB_WETLAND = "LAMB_WETLAND"
+    LAMB_CROPLAND = "LAMB_CROPLAND"
+    LAMB_URBAN = "LAMB_URBAN"
+    LAMB_CROP_MOSAIC = "LAMB_CROP_MOSAIC"
+    LAMB_SNOW_ANTARCTIC = "LAMB_SNOW_ANTARCTIC"
+    LAMB_DESERT_BARREN = "LAMB_DESERT_BARREN"
+    LAMB_OCEAN_WATER = "LAMB_OCEAN_WATER"
+    LAMB_TUNDRA = "LAMB_TUNDRA"
+    LAMB_SNOW_FRESH = "LAMB_SNOW_FRESH"
+    LAMB_SEA_ICE = "LAMB_SEA_ICE"
+    LAMB_SPECTRALON = "LAMB_SPECTRALON"
+    LAMB_SAND_DRY = "LAMB_SAND_DRY"
+
+
+@enum.unique
 class JSONPrintOpt(enum.IntFlag):
     WRT_NONE = 0
     WRT_STATUS = 1
@@ -310,7 +390,9 @@ class Aerosol(TypedDict, total=False):
 
     H2OAER: bool
     CNOVAM: bool
-    ARUSS: Literal["USS", "SAP", "DEFAULT", "   "]
+    ARUSS: Literal[
+        "USS", "SAP", "DEFAULT", "   ", "default"
+    ]  # lower 'default' in keywords.json
     SAPFILE: str
     IVSA: bool
     ZCVSA: float
@@ -318,13 +400,13 @@ class Aerosol(TypedDict, total=False):
     ZINVSA: float
 
     ASTMX: float
-    CDASTM: Literal["b", "B", "t", "T", "d", "D", "f"]  # TODO: "f" not documented?
+    CDASTM: Literal[" ", "b", "B", "t", "T", "d", "D", "f"]  # TODO: "f" not documented?
     ASTMC: float
     ASTMO: float
 
     # TODO Flexible aerosol options
     SSALB: object
-    APLUS: Literal["  ", "A+"]
+    APLUS: Literal["", "  ", "A+"]
     REGALT: object
     PHASEFN: object
     IREGSPC: object
@@ -365,7 +447,7 @@ class Geometry(TypedDict, total=False):
 
 
 class Surface(TypedDict, total=False):
-    SURFTYPE: object
+    SURFTYPE: SurfaceType
     SURREF: float
     NSURF: Literal[1, 2]
     TPTEMP: float
@@ -379,6 +461,24 @@ class Surface(TypedDict, total=False):
     SURFA: object
     SURFNLOS: int
     SURFLOS: list[object]
+    SURFACEPARAM: SurfaceParam
+
+
+class SurfaceParam(TypedDict, total=False):
+    CBRDF: SurfaceBRDFModel
+    SALBSTR: str
+    SURFAZ: float
+    CSALB: SurfaceLambertianModel
+    NWVSRF: float
+    WVSURF: list[float]
+    PBRDF1: list[float]
+    PBRDF2: list[float]
+    PBRDF3: list[float]
+    PBRDF4: list[float]
+    PBRDF5: list[float]
+    PBRDF6: list[float]
+    PBRDF7: list[float]
+    UDSALB: list[float]
 
 
 class Spectral(TypedDict, total=False):
@@ -406,13 +506,27 @@ class FileOptions(TypedDict, total=False):
     BINARY: bool
     CKPRNT: bool
     NOPRNT: Literal[0, 1, 2, 3, -1, -2]
-    MSGPRNT: Literal[0, 1, 2, 3, 4]
+    MSGPRNT: Literal[
+        0, 1, 2, 3, 4, "MSG_NONE", "MSG_ERROR", "MSG_WARN", "MSG_INFO", "MSG_DEBUG"
+    ]
     DATDIR: str
     FLROOT: str
     CSVPRNT: str
     SLIPRNT: str
     JSONPRNT: str
-    JSONOPT: JSONPrintOpt
+    JSONOPT: Union[
+        JSONPrintOpt,
+        Literal[
+            "WRT_NONE",
+            "WRT_STATUS",
+            "WRT_INPUT",
+            "WRT_STAT_INPUT",
+            "WRT_OUTPUT",
+            "WRT_STAT_OUTPUT",
+            "WRT_INPUT_OUTPUT",
+            "WRT_ALL",
+        ],
+    ]
 
 
 ModtranInput = TypedDict(
