@@ -1,10 +1,12 @@
 from __future__ import annotations
 
+import copy
 import math
 from typing import NamedTuple
 
-from typing_extensions import Unpack
+from typing_extensions import Self, Unpack
 
+from .. import _util
 from ._json import FileOptions, JSONInput, JSONPrintOpt, ModtranInput
 
 
@@ -28,10 +30,23 @@ class ModtranInputBuilder:
         self._cases = []
         self._root_name_format = root_name_format
 
-    def add_case(self, case_input: ModtranInput) -> CaseHandle:
+    def add_case(
+        self,
+        case_input: ModtranInput,
+        /,
+        make_copy: bool = True,
+        **kwargs: Unpack[ModtranInput],
+    ) -> CaseHandle:
+        if make_copy:
+            case_input = copy.deepcopy(case_input)
+
         index = self._next_index()
         case_input["CASE"] = index
-        self._cases.append(case_input)
+
+        for key, value in kwargs.items():
+            _util.assign_nested_mapping(case_input, key.split("__"), value)  # type: ignore[arg-type]
+
+        self._cases.append(case_input.copy())
         return CaseHandle(self, index)
 
     def _next_index(self) -> int:
@@ -80,13 +95,17 @@ class CaseHandle(NamedTuple):
         self,
         case_extension: ModtranInput | None = None,
         /,
+        make_copy: bool = True,
         **kwargs: Unpack[ModtranInput],
-    ) -> CaseHandle:
-        if case_extension is not None and kwargs:
-            raise ValueError("positional and keyword arguments cannot both be used")
-
+    ) -> Self:
         if case_extension is None:
-            case_extension = kwargs
+            case_extension = {}
+        elif make_copy:
+            case_extension = copy.deepcopy(case_extension)
 
         case_extension["CASE TEMPLATE"] = self.case_index
-        return self.builder.add_case(case_extension)
+        self.builder.add_case(case_extension, make_copy=False, **kwargs)
+        return self
+
+    def finish_case(self) -> ModtranInputBuilder:
+        return self.builder
