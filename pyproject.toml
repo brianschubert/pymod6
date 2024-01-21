@@ -36,3 +36,7 @@ strict = true
 [tool.pytest.ini_options]
 addopts = "--doctest-modules"
 testpaths = ["src"]
+
+# pyright config.
+[tool.pyright]
+reportTypedDictNotRequiredAccess = false
