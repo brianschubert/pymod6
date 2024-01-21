@@ -6,12 +6,15 @@ from __future__ import annotations
 
 import enum
 import json
+import pathlib
 import re
-from typing import Any, Final, Literal, Union, overload
+from typing import Any, Final, Literal, Union
 
 import pydantic
 from pydantic import ConfigDict
 from typing_extensions import TypedDict
+
+from pymod6._env import ModtranEnv
 
 _COMMENT_PATTERN: Final = re.compile(
     r'#(?:[^\n"]*(!<\\)"[^\n"]*(!<\\)")*[^\n"]*$', flags=re.MULTILINE
@@ -595,3 +598,28 @@ def read_json_input(
         return pydantic.TypeAdapter(JSONInput).validate_python(input_dict)
 
     return input_dict  # type: ignore
+
+
+def load_input_defaults(mod_data: pathlib.Path | None = None) -> ModtranInput:
+    if mod_data is None:
+        mod_data = ModtranEnv.from_environ().data
+
+    with mod_data.joinpath("keywords.json").open("r") as fd:
+        raw_dict: dict[str, Any] = json.load(fd)["VALID_MODTRAN"]["MODTRANINPUT"]
+
+    def _marshal_inner(value: dict[str, Any]) -> Any:
+        if not isinstance(value, dict):
+            return value
+
+        if "ENUM" in value:
+            return value["ENUM"]
+
+        if "DEFAULT" in value:
+            return value["DEFAULT"]
+
+        return {k: _marshal_inner(v) for k, v in value.items()}
+
+    for key, val in raw_dict.items():
+        raw_dict[key] = _marshal_inner(val)
+
+    return pydantic.TypeAdapter(ModtranInput).validate_python(raw_dict)
