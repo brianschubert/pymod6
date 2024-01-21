@@ -1,9 +1,15 @@
 """
 Unit conversion utilities.
+
+These utilities are strictly typed-hinted to make most argument issues static type
+errors instead of potential runtime errors. For example, attempting to use a frequency
+measurement with an invalid unit like ``Frequency(1, "cm")`` can be detected as a
+type error by static analysis tools (mypy, pyright, PyCharm, ...).
 """
 
 from __future__ import annotations
 
+import abc
 from dataclasses import dataclass
 from typing import Any, ClassVar, Final, Generic, Literal, TypeVar, Union
 
@@ -45,12 +51,6 @@ _SCALE_PREFIX_WAVENUMBER: TypeAlias = Union[
 
 _T = TypeVar("_T", float, np.ndarray[Any, np.dtype[np.floating[Any]]])
 
-_S = TypeVar(
-    "_S",
-    _SCALE_PREFIX_FREQUENCY,
-    _SCALE_PREFIX_WAVELENGTH,
-    _SCALE_PREFIX_WAVENUMBER,
-)
 
 SPEED_OF_LIGHT: Final[float] = 299792458.0
 
@@ -69,37 +69,40 @@ _BASE_SCALES: Final[dict[_SCALE_PREFIX, float]] = {
 }
 
 
-@dataclass
-class _FrequencyMeasure(Generic[_T, _S]):
-    value: _T
+@dataclass(init=False, order=True)
+class _FrequencyMeasure(abc.ABC, Generic[_T]):
+    _value: _T
 
-    __slots__ = ("value",)
+    # Using slots for marginal construction speed-up.
+    __slots__ = ("_value",)
 
-    _SCALE_SUFFIX: ClassVar[str]
     _SCALES: ClassVar[dict[str, float]]
-
-    def __init__(self, value: _T, scale: _S) -> None:
-        self.value = value * self._SCALES[scale]
 
     def __init_subclass__(cls, suffix: str = "", **kwargs: Any) -> None:
         super().__init_subclass__(**kwargs)
-        cls._SCALE_SUFFIX = suffix
         cls._SCALES = {
             **_BASE_SCALES,  # type: ignore[dict-item]
             **{f"{p}{suffix}": v for p, v in _BASE_SCALES.items()},
         }
 
+    # Note: to avoid performance penalties, we should avoid nested function calls
+    # and unnecessary computations. This means that each conversion should be
+    # implemented directly instead of implementing some in terms of others.
+
+    @abc.abstractmethod
     def as_frequency(self, scale: _SCALE_PREFIX_FREQUENCY) -> _T:
-        raise NotImplementedError
+        ...
 
+    @abc.abstractmethod
     def as_wavelength(self, scale: _SCALE_PREFIX_WAVELENGTH) -> _T:
-        raise NotImplementedError
+        ...
 
+    @abc.abstractmethod
     def as_wavenumber(self, scale: _SCALE_PREFIX_WAVENUMBER) -> _T:
-        raise NotImplementedError
+        ...
 
 
-class Frequency(_FrequencyMeasure[_T, _SCALE_PREFIX_FREQUENCY], suffix="Hz"):
+class Frequency(_FrequencyMeasure[_T], suffix="Hz"):
     """
     Frequency measurement.
 
@@ -115,17 +118,20 @@ class Frequency(_FrequencyMeasure[_T, _SCALE_PREFIX_FREQUENCY], suffix="Hz"):
     1250.0
     """
 
+    def __init__(self, value: _T, scale: _SCALE_PREFIX_FREQUENCY) -> None:
+        self._value = value * self._SCALES[scale]
+
     def as_frequency(self, scale: _SCALE_PREFIX_FREQUENCY) -> _T:
-        return self.value / self._SCALES[scale]
+        return self._value / self._SCALES[scale]
 
     def as_wavelength(self, scale: _SCALE_PREFIX_WAVELENGTH) -> _T:
-        return SPEED_OF_LIGHT / self.value / Wavelength._SCALES[scale]
+        return SPEED_OF_LIGHT / self._value / Wavelength._SCALES[scale]
 
     def as_wavenumber(self, scale: _SCALE_PREFIX_WAVENUMBER) -> _T:
-        return self.value / SPEED_OF_LIGHT * Wavenumber._SCALES[scale]
+        return self._value / SPEED_OF_LIGHT * Wavenumber._SCALES[scale]
 
 
-class Wavelength(_FrequencyMeasure[_T, _SCALE_PREFIX_WAVELENGTH], suffix="m"):
+class Wavelength(_FrequencyMeasure[_T], suffix="m"):
     """
     Wavelength measurement.
 
@@ -141,17 +147,20 @@ class Wavelength(_FrequencyMeasure[_T, _SCALE_PREFIX_WAVELENGTH], suffix="m"):
     4.0
     """
 
+    def __init__(self, value: _T, scale: _SCALE_PREFIX_WAVELENGTH) -> None:
+        self._value = value * self._SCALES[scale]
+
     def as_frequency(self, scale: _SCALE_PREFIX_FREQUENCY) -> _T:
-        return SPEED_OF_LIGHT / self.value / Frequency._SCALES[scale]
+        return SPEED_OF_LIGHT / self._value / Frequency._SCALES[scale]
 
     def as_wavelength(self, scale: _SCALE_PREFIX_WAVELENGTH) -> _T:
-        return self.value / self._SCALES[scale]
+        return self._value / self._SCALES[scale]
 
     def as_wavenumber(self, scale: _SCALE_PREFIX_WAVENUMBER) -> _T:
-        return 1 / self.value * Wavenumber._SCALES[scale]
+        return 1 / self._value * Wavenumber._SCALES[scale]
 
 
-class Wavenumber(_FrequencyMeasure[_T, _SCALE_PREFIX_WAVENUMBER], suffix="m-1"):
+class Wavenumber(_FrequencyMeasure[_T], suffix="m-1"):
     """
     Wavenumber measurement.
 
@@ -167,15 +176,14 @@ class Wavenumber(_FrequencyMeasure[_T, _SCALE_PREFIX_WAVENUMBER], suffix="m-1"):
     400.0
     """
 
-    # noinspection PyMissingConstructor
     def __init__(self, value: _T, scale: _SCALE_PREFIX_WAVENUMBER) -> None:
-        self.value = value / self._SCALES[scale]
+        self._value = value / self._SCALES[scale]
 
     def as_frequency(self, scale: _SCALE_PREFIX_FREQUENCY) -> _T:
-        return SPEED_OF_LIGHT * self.value / Frequency._SCALES[scale]
+        return SPEED_OF_LIGHT * self._value / Frequency._SCALES[scale]
 
     def as_wavelength(self, scale: _SCALE_PREFIX_WAVELENGTH) -> _T:
-        return 1 / self.value / Wavelength._SCALES[scale]
+        return 1 / self._value / Wavelength._SCALES[scale]
 
     def as_wavenumber(self, scale: _SCALE_PREFIX_WAVENUMBER) -> _T:
-        return self.value * self._SCALES[scale]
+        return self._value * self._SCALES[scale]
