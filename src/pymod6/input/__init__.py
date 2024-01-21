@@ -1,3 +1,4 @@
+from . import basecases
 from ._builder import CaseHandle, ModtranInputBuilder
 from ._json import (
     Aerosol,
