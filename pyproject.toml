@@ -35,7 +35,7 @@ strict = true
 # pytest config
 [tool.pytest.ini_options]
 addopts = "--doctest-modules"
-testpaths = ["src"]
+testpaths = ["src", "tests"]
 
 # pyright config.
 [tool.pyright]
