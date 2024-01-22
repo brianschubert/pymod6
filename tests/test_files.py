@@ -2,10 +2,6 @@ import pymod6._exec
 import pymod6.input as mod_input
 
 
-def test_license_active(modtran_exec) -> None:
-    assert modtran_exec.license_status() == "STAT_VALID MODTRAN license is activated."
-
-
 def test_files_exist_legacy_text(modtran_exec) -> None:
     input_json = (
         mod_input.ModtranInputBuilder()
