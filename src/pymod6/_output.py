@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import contextlib
 import pathlib
+import struct
 from typing import Any, BinaryIO, ContextManager, TextIO, cast
 
 import numpy as np
@@ -24,9 +25,9 @@ _AtmoCorrectDataDType = np.dtype(
 
 _AtmoCorrectDataFileDtype = np.dtype(
     [
-        ("_delim1", "B", 4),
+        ("_delim1", "<i4"),
         ("data", _AtmoCorrectDataDType),
-        ("_delim2", "B", 4),
+        ("_delim2", "<i4"),
     ]
 )
 
@@ -35,8 +36,9 @@ def read_acd_text(file: pathlib.Path | TextIO) -> np.ndarray[Any, Any]:
     return np.loadtxt(file, skiprows=5, dtype=_AtmoCorrectDataDType)
 
 
-def read_acd_binary(file: pathlib.Path | BinaryIO) -> np.ndarray[Any, Any]:
-    # TODO check for -9999.0 (00 3C 1C C6) sentinel in header row?
+def read_acd_binary(
+    file: str | pathlib.Path | BinaryIO, *, check: bool = False
+) -> np.ndarray[Any, Any]:
     # TODO handle multiple cases in one file?
     cm: ContextManager[BinaryIO]
     if _util.is_binary_io(file):
@@ -52,5 +54,24 @@ def read_acd_binary(file: pathlib.Path | BinaryIO) -> np.ndarray[Any, Any]:
         offset=_AtmoCorrectDataFileDtype.itemsize,
         dtype=_AtmoCorrectDataFileDtype,
     )
+
+    # Run optional sanity checks.
+    if check:
+        # Check header row contents.
+        expected_header = struct.pack(
+            "ifiiiiiiiii", ord("$"), -9999.0, 0, 1, 0, 0, 0, 0, 0, 0, ord("$")
+        )
+        if buffer[: _AtmoCorrectDataFileDtype.itemsize] != expected_header:
+            raise ValueError(
+                f"invalid header: expected '{expected_header.hex()}',"
+                f" got '{buffer[: _AtmoCorrectDataFileDtype.itemsize].hex()}'"
+            )
+
+        # Check start and end word of every row.
+        delim_words = set(contents["_delim1"]) | set(contents["_delim2"])
+        if unexpected_delims := delim_words - {ord("$")}:
+            raise ValueError(
+                f"got unexpected word(s) in delimiter columns: {unexpected_delims}"
+            )
 
     return contents["data"]
