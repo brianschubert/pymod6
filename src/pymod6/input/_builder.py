@@ -5,6 +5,7 @@ import datetime
 import math
 from typing import NamedTuple
 
+import pydantic
 from typing_extensions import Self, Unpack
 
 from .. import _util
@@ -24,12 +25,17 @@ class ModtranInputBuilder:
 
     _root_name_format: str
 
+    _validate: bool
+
     def __init__(
         self,
+        *,
         root_name_format: str = "case{case_index:0{case_digits}}",  # {timestamp:%Y-%m-%dT%H-%M-%S}_
+        validate: bool = True,
     ) -> None:
         self._cases = []
         self._root_name_format = root_name_format
+        self._validate = validate
 
     def add_case(
         self,
@@ -46,6 +52,9 @@ class ModtranInputBuilder:
 
         for key, value in kwargs.items():
             _util.assign_nested_mapping(case_input, key.split("__"), value)  # type: ignore[arg-type]
+
+        if self._validate:
+            case_input = pydantic.TypeAdapter(ModtranInput).validate_python(case_input)
 
         self._cases.append(case_input.copy())
         return CaseHandle(self, index)
@@ -87,7 +96,14 @@ class ModtranInputBuilder:
 
             file_options["BINARY"] = binary
 
-        return {"MODTRAN": [{"MODTRANINPUT": case} for case in self._cases]}
+        input_json: JSONInput = {
+            "MODTRAN": [{"MODTRANINPUT": case} for case in self._cases]
+        }
+
+        if self._validate:
+            return pydantic.TypeAdapter(JSONInput).validate_python(input_json)
+
+        return input_json
 
 
 class CaseHandle(NamedTuple):

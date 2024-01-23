@@ -551,6 +551,8 @@ ModtranInput = TypedDict(
     total=False,
 )
 
+ModtranInput.__pydantic_config__ = ConfigDict(extra="forbid")  # type: ignore[attr-defined]
+
 
 class ModtranStatus(TypedDict, total=False):
     VERSION: str
