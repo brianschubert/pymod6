@@ -9,7 +9,7 @@ import subprocess
 import tempfile
 from collections.abc import Sequence
 from dataclasses import dataclass
-from typing import NamedTuple, cast
+from typing import NamedTuple, cast, overload
 
 from pymod6._env import ModtranEnv
 from pymod6.input import FileOptions, JSONInput
@@ -17,7 +17,47 @@ from pymod6.input import FileOptions, JSONInput
 
 class _ModtranResult(NamedTuple):
     process: subprocess.CompletedProcess[str]
-    files: list["_ResultFiles"]
+    cases_output_files: _ModtranOutputFiles
+
+
+@dataclass
+class _ModtranOutputFiles(Sequence["_CaseResultFilesNavigator"]):
+    """
+    Collection of output files from a MODTRAN run, organized by case.
+
+    Output file paths are resolved lazily.
+    """
+
+    input: JSONInput
+    work_dir: pathlib.Path
+
+    # TODO: interface for collecting output files "post mortem" / directly from disk.
+
+    @overload
+    def __getitem__(self, case_index: int, /) -> _CaseResultFilesNavigator:
+        ...
+
+    @overload
+    def __getitem__(self, case_index: slice, /) -> Sequence[_CaseResultFilesNavigator]:
+        ...
+
+    def __getitem__(
+        self, case_index: int | slice, /
+    ) -> _CaseResultFilesNavigator | Sequence[_CaseResultFilesNavigator]:
+        if isinstance(case_index, slice):
+            # https://docs.python.org/3/reference/datamodel.html#slice.indices
+            return [self[idx] for idx in range(*case_index.indices(len(self)))]
+
+        # TODO: fallback to case listed in 'CASE TEMPLATE' on lookup fail?
+        case = self.input["MODTRAN"][case_index]
+        return _CaseResultFilesNavigator(
+            self.work_dir,
+            case["MODTRANINPUT"]["FILEOPTIONS"],
+            case["MODTRANINPUT"].get("NAME"),
+        )
+
+    def __len__(self) -> int:
+        return len(self.input["MODTRAN"])
 
 
 class ModtranExecutable:
@@ -70,15 +110,7 @@ class ModtranExecutable:
                 text=True,
             )
 
-        result_files = [
-            _ResultFiles(
-                work_dir,
-                case["MODTRANINPUT"]["FILEOPTIONS"],
-                case["MODTRANINPUT"].get("NAME"),
-            )
-            for case in input_file["MODTRAN"]
-        ]
-        return _ModtranResult(result, result_files)
+        return _ModtranResult(result, _ModtranOutputFiles(input_file, work_dir))
 
     def run_parallel(
         self,
@@ -117,17 +149,17 @@ class ModtranExecutable:
 
 
 @dataclass
-class _ResultFiles:
+class _CaseResultFilesNavigator:
     """
-    Index into available result files.
+    Index into available result files for a single case.
 
     Not all files will exist, depending on execution options.
 
-    Some files may contain results for multiple cases (e.g. '.csv', '.acd', ...) if
-    the same options are used in multiple cases.
+    WARNING: Some files may contain results for multiple cases
+    (e.g. '.csv', '.acd', ...) if the same options are used in multiple cases.
 
-    SLI files will have numeric suffixes added if multiple cases use the same SLIPRNT,
-    which this class does not account for.
+    SLI files will have numeric suffixes added if multiple cases use the same
+    SLIPRNT, which this class does not account for.
     """
 
     work_dir: pathlib.Path
@@ -214,7 +246,7 @@ class _ResultFiles:
     def wrn(self) -> pathlib.Path:
         return self._resolve_legacy_path(".wrn", "warnings.txt")
 
-    def all(self, *, only_existing: bool = False) -> list[pathlib.Path]:
+    def all_files(self, *, only_existing: bool = False) -> list[pathlib.Path]:
         file_properties = [
             getattr(self, name)
             for name, value in self.__class__.__dict__.items()

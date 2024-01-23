@@ -10,12 +10,12 @@ def test_files_exist_legacy_text(modtran_exec, tmp_path) -> None:
         .build_json_input(output_legacy=True)
     )
 
-    result_files: pymod6._exec._ResultFiles
-    result_proc, [result_files] = modtran_exec.run(input_json, work_dir=tmp_path)
+    case_files: pymod6._exec._CaseResultFilesNavigator
+    result_proc, [case_files] = modtran_exec.run(input_json, work_dir=tmp_path)
 
     assert result_proc.returncode == 0
 
-    assert [f.name for f in result_files.all(only_existing=True)] == [
+    assert [f.name for f in case_files.all_files(only_existing=True)] == [
         "case0.acd",
         "case0.tp7",
         "case0.tp6",
@@ -35,12 +35,12 @@ def test_files_exist_legacy_binary(modtran_exec, tmp_path) -> None:
         .build_json_input(output_legacy=True, binary=True)
     )
 
-    result_files: pymod6._exec._ResultFiles
-    result_proc, [result_files] = modtran_exec.run(input_json, work_dir=tmp_path)
+    case_files: pymod6._exec._CaseResultFilesNavigator
+    result_proc, [case_files] = modtran_exec.run(input_json, work_dir=tmp_path)
 
     assert result_proc.returncode == 0
 
-    assert [f.name for f in result_files.all(only_existing=True)] == [
+    assert [f.name for f in case_files.all_files(only_existing=True)] == [
         "case0_b.acd",
         "case0.tp7",
         "case0_b.tp7",
@@ -61,12 +61,12 @@ def test_files_exist_sli(modtran_exec, tmp_path) -> None:
         .build_json_input(output_sli=True)
     )
 
-    result_files: pymod6._exec._ResultFiles
-    result_proc, [result_files] = modtran_exec.run(input_json, work_dir=tmp_path)
+    case_files: pymod6._exec._CaseResultFilesNavigator
+    result_proc, [case_files] = modtran_exec.run(input_json, work_dir=tmp_path)
 
     assert result_proc.returncode == 0
 
-    assert [f.name for f in result_files.all(only_existing=True)] == [
+    assert [f.name for f in case_files.all_files(only_existing=True)] == [
         "case0.hdr",
         "case0.sli",
         "case0_flux.hdr",
@@ -82,12 +82,12 @@ def test_files_exist_csv(modtran_exec, tmp_path) -> None:
         .build_json_input(output_csv=True)
     )
 
-    result_files: pymod6._exec._ResultFiles
-    result_proc, [result_files] = modtran_exec.run(input_json, work_dir=tmp_path)
+    case_files: pymod6._exec._CaseResultFilesNavigator
+    result_proc, [case_files] = modtran_exec.run(input_json, work_dir=tmp_path)
 
     assert result_proc.returncode == 0
 
-    assert [f.name for f in result_files.all(only_existing=True)] == [
+    assert [f.name for f in case_files.all_files(only_existing=True)] == [
         "case0.csv",
     ]
 
@@ -101,19 +101,19 @@ def test_files_exist_json(modtran_exec, tmp_path) -> None:
             .build_json_input(json_opt=json_opt)
         )
 
-        result_files: pymod6._exec._ResultFiles
-        result_proc, [result_files] = modtran_exec.run(input_json, work_dir=tmp_path)
+        case_files: pymod6._exec._CaseResultFilesNavigator
+        result_proc, [case_files] = modtran_exec.run(input_json, work_dir=tmp_path)
 
         assert result_proc.returncode == 0
 
-        output_files = [f.name for f in result_files.all(only_existing=True)]
+        output_files = [f.name for f in case_files.all_files(only_existing=True)]
 
         if json_opt == mod_input.JSONPrintOpt.WRT_NONE:
             assert output_files == []
         else:
             assert output_files == ["case0.json"]
 
-            output_json = mod_input.read_json_input(result_files.json.read_text())
+            output_json = mod_input.read_json_input(case_files.json.read_text())
             [case] = output_json["MODTRAN"]
 
             assert (
