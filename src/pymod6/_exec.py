@@ -37,6 +37,15 @@ class ModtranExecutable:
         )
         return result.stdout.strip()
 
+    def version(self) -> str:
+        result = subprocess.run(
+            [self._env.exe, "-version"],
+            check=True,
+            capture_output=True,
+            text=True,
+        )
+        return result.stdout.strip()
+
     def run(
         self,
         input_file: JSONInput,
