@@ -362,12 +362,13 @@ class Atmosphere(TypedDict, total=False):
     C_PROF: Literal[0, 1, 2, 3, 4, 5, 6, 7]
     S_UMIX: list[float]
     S_XSEC: list[float]
-    S_TRACE: list[float]
+    S_TRAC: list[float]
     AERRH: float
     AYRANG: bool
     AYRANGFL: str
     E_MASS: float
     AIRMWT: float
+    ATMPROFILE: AtmosphereProfile
 
 
 class AtmosphereProfile(TypedDict, total=False):
@@ -413,6 +414,18 @@ class Aerosol(TypedDict, total=False):
     REGALT: object
     PHASEFN: object
     IREGSPC: object
+    REGSPC: object
+
+    CTHIK: float
+    CALT: float
+    CWAVLN: float
+    CEXT: float
+    CCOLWD: float
+    CCOLIP: float
+    CHUMID: float
+    ASYMWD: float
+    ASYMIP: float
+
     CLDALT: object
     CLDSPC: object
 
@@ -448,6 +461,9 @@ class Geometry(TypedDict, total=False):
     TRUEAZ: float
     ANGLEM: float
 
+    REFPATH: object
+    LOSGEOMETRY: object
+
 
 class Surface(TypedDict, total=False):
     SURFTYPE: SurfaceType
@@ -470,6 +486,7 @@ class Surface(TypedDict, total=False):
 class SurfaceParam(TypedDict, total=False):
     CBRDF: SurfaceBRDFModel
     SALBSTR: str
+    SURFZN: float  # can only be zero, but Literal[0.0] is not supported
     SURFAZ: float
     CSALB: SurfaceLambertianModel
     NWVSRF: float
