@@ -1,3 +1,4 @@
+import copy
 from typing import Final
 
 from .. import unit as _unit
@@ -24,18 +25,18 @@ BASE: Final[_json.ModtranInput] = _json.ModtranInput(
 )
 
 # https://en.wikipedia.org/wiki/VNIR
-VNIR: Final[_json.ModtranInput] = BASE.copy()
+VNIR: Final[_json.ModtranInput] = copy.deepcopy(BASE)
 VNIR["SPECTRAL"]["V1"] = _unit.Wavelength(1400, "nm").as_wavenumber("cm-1")
 VNIR["SPECTRAL"]["V2"] = _unit.Wavelength(400, "nm").as_wavenumber("cm-1")
 
-SWIR: Final[_json.ModtranInput] = BASE.copy()
+SWIR: Final[_json.ModtranInput] = copy.deepcopy(BASE)
 SWIR["SPECTRAL"]["V1"] = _unit.Wavelength(2500, "nm").as_wavenumber("cm-1")
 SWIR["SPECTRAL"]["V2"] = _unit.Wavelength(1400, "nm").as_wavenumber("cm-1")
 
-VNIR_SWIR: Final[_json.ModtranInput] = BASE.copy()
+VNIR_SWIR: Final[_json.ModtranInput] = copy.deepcopy(BASE)
 VNIR_SWIR["SPECTRAL"]["V1"] = SWIR["SPECTRAL"]["V1"]
 VNIR_SWIR["SPECTRAL"]["V2"] = VNIR["SPECTRAL"]["V2"]
 
-LWIR: Final[_json.ModtranInput] = BASE.copy()
+LWIR: Final[_json.ModtranInput] = copy.deepcopy(BASE)
 LWIR["SPECTRAL"]["V1"] = _unit.Wavelength(14, "um").as_wavenumber("cm-1")
 LWIR["SPECTRAL"]["V2"] = _unit.Wavelength(8, "um").as_wavenumber("cm-1")
