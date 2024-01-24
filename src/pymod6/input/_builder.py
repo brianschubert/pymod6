@@ -2,7 +2,6 @@ from __future__ import annotations
 
 import copy
 import datetime
-import math
 from typing import NamedTuple
 
 import pydantic
@@ -71,7 +70,7 @@ class ModtranInputBuilder:
         binary: bool = False,
         json_opt: JSONPrintOpt = JSONPrintOpt.WRT_NONE,
     ) -> JSONInput:
-        case_digits = 1 + int(math.log10(len(self._cases)))
+        case_digits = _util.num_digits(len(self._cases) - 1)
 
         for case in self._cases:
             root_name = self._root_name_format.format(

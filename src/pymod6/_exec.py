@@ -2,7 +2,6 @@ from __future__ import annotations
 
 import concurrent.futures
 import json
-import math
 import os
 import pathlib
 import subprocess
@@ -14,6 +13,7 @@ from pymod6._env import ModtranEnv
 from pymod6._output import _ModtranOutputFiles
 from pymod6.input import JSONInput
 
+from . import _util
 
 class _ModtranResult(NamedTuple):
     process: subprocess.CompletedProcess[str]
@@ -87,7 +87,7 @@ class ModtranExecutable:
             max_workers = min(len(input_files), os.cpu_count() or 16)
 
         results = [cast(_ModtranResult, None)] * len(input_files)
-        num_job_digits = 1 + int(math.log10(len(input_files) - 1))
+        num_job_digits = _util.num_digits(len(input_files) - 1)
 
         with concurrent.futures.ThreadPoolExecutor(max_workers=max_workers) as executor:
             futures_to_index: dict[concurrent.futures.Future[_ModtranResult], int] = {}

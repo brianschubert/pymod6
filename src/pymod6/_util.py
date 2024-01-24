@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import io
+import math
 from typing import Any, BinaryIO, MutableMapping, Sequence, TextIO, TypeVar
 
 from typing_extensions import TypeGuard
@@ -42,3 +43,29 @@ def assign_nested_mapping(
             ) from ex
         curr = curr[k]  # type: ignore[assignment]
     curr[keys[-1]] = value
+
+
+def num_digits(x: int) -> int:
+    """
+    Return the number of decimal digits needed to represent the non-negative integer x.
+
+    >>> num_digits(0)
+    1
+    >>> num_digits(9)
+    1
+    >>> num_digits(10)
+    2
+    >>> num_digits(999_999_999_999)
+    12
+    >>> num_digits(1_000_000_000_000)
+    13
+    >>> num_digits(-1)
+    Traceback (most recent call last):
+    ...
+    ValueError: value must be non-negative, got -1
+    """
+    if x < 0:
+        raise ValueError(f"value must be non-negative, got {x}")
+    if x == 0:
+        return 1
+    return 1 + int(math.log10(x))
