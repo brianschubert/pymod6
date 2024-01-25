@@ -34,8 +34,10 @@ _AtmoCorrectDataFileDtype = np.dtype(
 )
 
 
-def read_acd_text(file: pathlib.Path | TextIO) -> np.ndarray[Any, Any]:
-    return np.loadtxt(file, skiprows=5, dtype=_AtmoCorrectDataDType)
+def read_acd_text(
+    file: pathlib.Path | TextIO, *, dtype: npt.DTypeLike = _AtmoCorrectDataDType
+) -> np.ndarray[Any, Any]:
+    return np.loadtxt(file, skiprows=5, dtype=dtype)
 
 
 def read_acd_binary(
