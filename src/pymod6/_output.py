@@ -7,6 +7,9 @@ from dataclasses import dataclass
 from typing import Any, BinaryIO, ContextManager, Sequence, TextIO, cast, overload
 
 import numpy as np
+import numpy.typing as npt
+import spectral.io.envi  # type: ignore[import-untyped]
+import xarray as xr
 
 from . import _util
 from .input import FileOptions, JSONInput
@@ -81,6 +84,19 @@ def read_acd_binary(
     return contents["data"]
 
 
+def read_sli(file: str | pathlib.Path) -> xr.Dataset:
+    spec_lib = spectral.io.envi.open(file)
+    if not isinstance(spec_lib, spectral.io.envi.SpectralLibrary):
+        raise ValueError(f"SLI file not a spectral library: {file}")
+
+    return xr.DataArray(
+        spec_lib.spectra,
+        dims=["output", "wavelength"],
+        coords={"output": spec_lib.names, "wavelength": spec_lib.bands.centers},
+        attrs=spec_lib.metadata,
+    ).to_dataset("output")
+
+
 @dataclass
 class _ModtranOutputFiles(Sequence["_CaseResultFilesNavigator"]):
     """
@@ -93,6 +109,8 @@ class _ModtranOutputFiles(Sequence["_CaseResultFilesNavigator"]):
     work_dir: pathlib.Path
 
     # TODO: interface for collecting output files "post mortem" / directly from disk.
+
+    # Sequence.__getitem__ overloads required by type checkers.
 
     @overload
     def __getitem__(self, case_index: int, /) -> _CaseResultFilesNavigator:
@@ -166,7 +184,7 @@ class _CaseResultFilesNavigator:
         try:
             csv_root = self.file_options["CSVPRNT"]
         except KeyError:
-            # CSV file not requested. Return sentinel that should file .exists() checks.
+            # CSV file not requested. Return sentinel that should fail .exists() checks.
             csv_root = ".CSVPRNT_NOT_SET"
 
         path = self.work_dir.joinpath(csv_root)
@@ -242,7 +260,7 @@ class _CaseResultFilesNavigator:
         try:
             sli_root = self.file_options["SLIPRNT"]
         except KeyError:
-            # SLI files not requested. Return sentinel that should file .exists() checks.
+            # SLI files not requested. Return sentinel that should fail .exists() checks.
             sli_root = ".SLIPRNT_NOT_SET"
         return self.work_dir.joinpath(f"{sli_root}{tail}")
 
