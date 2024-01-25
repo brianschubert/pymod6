@@ -7,13 +7,18 @@ import pathlib
 import subprocess
 import tempfile
 from collections.abc import Sequence
-from typing import NamedTuple, cast
+from typing import NamedTuple, Union, cast
+
+from typing_extensions import TypeAlias
 
 from pymod6._env import ModtranEnv
 from pymod6._output import _ModtranOutputFiles
 from pymod6.input import JSONInput
 
 from . import _util
+
+_PathLike: TypeAlias = Union[str, os.PathLike[str]]
+
 
 class _ModtranResult(NamedTuple):
     process: subprocess.CompletedProcess[str]
@@ -50,13 +55,12 @@ class ModtranExecutable:
         self,
         input_file: JSONInput,
         *,
-        work_dir: pathlib.Path | None = None,
+        work_dir: _PathLike | None,
     ) -> _ModtranResult:
         # TODO: should there be any treatment (different output type, warnings, etc) for output files that are
         #  written to by multiple cases?
 
-        if work_dir is None:
-            work_dir = pathlib.Path.cwd()
+        work_dir = _path_or_cwd(work_dir)
 
         with tempfile.NamedTemporaryFile("w") as temp_file:
             json.dump(input_file, temp_file)
@@ -76,11 +80,10 @@ class ModtranExecutable:
         self,
         input_files: Sequence[JSONInput],
         *,
-        work_dir: pathlib.Path | None = None,
+        work_dir: _PathLike | None = None,
         max_workers: int | None = None,
     ) -> list[_ModtranResult]:
-        if work_dir is None:
-            work_dir = pathlib.Path.cwd()
+        work_dir = _path_or_cwd(work_dir)
 
         if max_workers is None:
             # TODO: warning when number of CPUs can not be determined?
@@ -94,6 +97,7 @@ class ModtranExecutable:
             for idx, curr_file in enumerate(input_files):
                 job_work_dir = work_dir.joinpath(f"job{idx:0{num_job_digits}}")
                 job_work_dir.mkdir(parents=False, exist_ok=False)
+
                 future = executor.submit(self.run, curr_file, work_dir=job_work_dir)
                 futures_to_index[future] = idx
 
@@ -106,3 +110,10 @@ class ModtranExecutable:
                     raise
 
         return results
+
+
+def _path_or_cwd(p: _PathLike | None) -> pathlib.Path:
+    if p is None:
+        return pathlib.Path.cwd()
+
+    return pathlib.Path(p)
