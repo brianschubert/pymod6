@@ -12,10 +12,10 @@ from typing import NamedTuple, Union, cast
 from typing_extensions import TypeAlias
 
 from pymod6._env import ModtranEnv
-from pymod6._output import _ModtranOutputFiles
 from pymod6.input import JSONInput
 
 from . import _util
+from .output._nav import _ModtranOutputFiles
 
 _PathLike: TypeAlias = Union[str, os.PathLike[str]]
 

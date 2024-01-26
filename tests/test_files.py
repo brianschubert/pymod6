@@ -1,8 +1,8 @@
 import numpy as np
 
 import pymod6._exec
-import pymod6._output
 import pymod6.input as mod_input
+import pymod6.output
 
 
 def test_files_exist_legacy_text(modtran_exec, tmp_path) -> None:
@@ -13,7 +13,7 @@ def test_files_exist_legacy_text(modtran_exec, tmp_path) -> None:
         .build_json_input(output_legacy=True)
     )
 
-    case_files: pymod6._output._CaseResultFilesNavigator
+    case_files: pymod6.output._nav._CaseResultFilesNavigator
     result_proc, [case_files] = modtran_exec.run(input_json, work_dir=tmp_path)
 
     assert result_proc.returncode == 0
@@ -38,7 +38,7 @@ def test_files_exist_legacy_binary(modtran_exec, tmp_path) -> None:
         .build_json_input(output_legacy=True, binary=True)
     )
 
-    case_files: pymod6._output._CaseResultFilesNavigator
+    case_files: pymod6.output._nav._CaseResultFilesNavigator
     result_proc, [case_files] = modtran_exec.run(input_json, work_dir=tmp_path)
 
     assert result_proc.returncode == 0
@@ -64,7 +64,7 @@ def test_files_exist_sli(modtran_exec, tmp_path) -> None:
         .build_json_input(output_sli=True)
     )
 
-    case_files: pymod6._output._CaseResultFilesNavigator
+    case_files: pymod6.output._nav._CaseResultFilesNavigator
     result_proc, [case_files] = modtran_exec.run(input_json, work_dir=tmp_path)
 
     assert result_proc.returncode == 0
@@ -85,7 +85,7 @@ def test_files_exist_csv(modtran_exec, tmp_path) -> None:
         .build_json_input(output_csv=True)
     )
 
-    case_files: pymod6._output._CaseResultFilesNavigator
+    case_files: pymod6.output._nav._CaseResultFilesNavigator
     result_proc, [case_files] = modtran_exec.run(input_json, work_dir=tmp_path)
 
     assert result_proc.returncode == 0
@@ -104,7 +104,7 @@ def test_files_exist_json(modtran_exec, tmp_path) -> None:
             .build_json_input(json_opt=json_opt)
         )
 
-        case_files: pymod6._output._CaseResultFilesNavigator
+        case_files: pymod6.output._nav._CaseResultFilesNavigator
         result_proc, [case_files] = modtran_exec.run(input_json, work_dir=tmp_path)
 
         assert result_proc.returncode == 0
@@ -144,13 +144,13 @@ def test_acd_text_binary_match(modtran_exec, tmp_path) -> None:
         .build_json_input(output_legacy=True, binary=True)
     )
 
-    acd_text = pymod6._output.read_acd_text(
+    acd_text = pymod6.output.read_acd_text(
         modtran_exec.run(input_acd_text, work_dir=tmp_path)
         .cases_output_files[0]
         .acd_text,
     )
 
-    acd_binary = pymod6._output.read_acd_binary(
+    acd_binary = pymod6.output.read_acd_binary(
         modtran_exec.run(input_acd_binary, work_dir=tmp_path)
         .cases_output_files[0]
         .acd_binary,

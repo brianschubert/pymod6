@@ -3,7 +3,7 @@ from __future__ import annotations
 import importlib.metadata
 from typing import Final
 
-from . import input, unit
+from . import input, output, unit
 from ._env import ModtranEnv
 from ._exec import ModtranExecutable
 
