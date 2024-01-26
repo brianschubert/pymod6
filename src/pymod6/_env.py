@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import contextlib
+import dataclasses
 import os
 import pathlib
 import re
@@ -23,20 +24,31 @@ _ENV_EXPORT_PATTERN: Final = re.compile(
 class ModtranEnv:
     exe: pathlib.Path
     data: pathlib.Path
+    extra: dict[str, str] = dataclasses.field(default_factory=dict)
 
     @classmethod
     def from_environ(cls, environ: Mapping[str, str] = os.environ) -> Self:
+        """
+        Infer MODTRAN environment from environment variables.
+
+        >>> ModtranEnv.from_environ(
+        ...     {"MODTRAN_EXE": "exe", "MODTRAN_DATA": "data", "MODTRAN_OTHER": "other", "EXTRANEOUS": "misc"}
+        ... ) # doctest: +ELLIPSIS
+        ModtranEnv(exe=...Path('exe'), data=...Path('data'), extra={'MODTRAN_OTHER': 'other'})
+        """
+        mod_vars = {k: v for k, v in environ.items() if k.startswith("MODTRAN")}
+
         try:
-            exe = pathlib.Path(environ["MODTRAN_EXE"])
+            exe = pathlib.Path(mod_vars.pop("MODTRAN_EXE"))
         except KeyError as ex:
             raise ValueError("MODTRAN_EXE not set in environment") from ex
 
         try:
-            data = pathlib.Path(environ["MODTRAN_DATA"])
+            data = pathlib.Path(mod_vars.pop("MODTRAN_DATA"))
         except KeyError as ex:
             raise ValueError("MODTRAN_DATA not set in environment") from ex
 
-        return cls(exe=exe, data=data)
+        return cls(exe=exe, data=data, extra=mod_vars)
 
     @classmethod
     def from_shell_file(cls, file: str | pathlib.Path | TextIO) -> Self:
@@ -60,4 +72,5 @@ class ModtranEnv:
         return {
             "MODTRAN_EXE": str(self.exe),
             "MODTRAN_DATA": str(self.data),
+            **self.extra,
         }
