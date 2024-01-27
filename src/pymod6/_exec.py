@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import concurrent.futures
+import datetime
 import json
 import os
 import pathlib
@@ -11,7 +12,7 @@ from typing import NamedTuple, Union, cast
 
 from typing_extensions import TypeAlias
 
-from pymod6._env import ModtranEnv
+from pymod6 import ModtranEnv
 from pymod6.input import JSONInput
 
 from . import _util
@@ -55,12 +56,12 @@ class ModtranExecutable:
         self,
         input_file: JSONInput,
         *,
-        work_dir: _PathLike | None,
+        work_dir: _PathLike | None = None,
     ) -> _ModtranResult:
         # TODO: should there be any treatment (different output type, warnings, etc) for output files that are
         #  written to by multiple cases?
 
-        work_dir = _path_or_cwd(work_dir)
+        work_dir = _path_or_default_work_dir(work_dir)
 
         with tempfile.NamedTemporaryFile("w") as temp_file:
             json.dump(input_file, temp_file)
@@ -83,7 +84,7 @@ class ModtranExecutable:
         work_dir: _PathLike | None = None,
         max_workers: int | None = None,
     ) -> list[_ModtranResult]:
-        work_dir = _path_or_cwd(work_dir)
+        work_dir = _path_or_default_work_dir(work_dir)
 
         if max_workers is None:
             # TODO: warning when number of CPUs can not be determined?
@@ -112,8 +113,14 @@ class ModtranExecutable:
         return results
 
 
-def _path_or_cwd(p: _PathLike | None) -> pathlib.Path:
+def _path_or_default_work_dir(p: _PathLike | None) -> pathlib.Path:
     if p is None:
-        return pathlib.Path.cwd()
+        work_dir = (
+            pathlib.Path.cwd()
+            / "modtran_runs"
+            / f"run{datetime.datetime.now().isoformat(timespec='seconds')}"
+        )
+        work_dir.mkdir(parents=True, exist_ok=False)
+        return work_dir
 
     return pathlib.Path(p)
