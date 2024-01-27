@@ -41,6 +41,14 @@ _AtmoCorrectDataFileDtype: Final = np.dtype(
 def read_acd_text(
     file: pathlib.Path | TextIO, *, dtype: npt.DTypeLike = _AtmoCorrectDataDType
 ) -> np.ndarray[Any, Any]:
+    """
+    Read ASCII atmospheric correction data file.
+
+    :param file: File name or file-like object to read.
+    :param dtype: Desired datatype. Defaults to structure with mixed integers and
+        floats. Set to "f4" for homogenous float outputs.
+    :return: ACD date as numpy array.
+    """
     return np.loadtxt(file, skiprows=5, dtype=dtype)
 
 
@@ -48,7 +56,6 @@ def read_acd_text(
 def read_acd_binary(
     file: str | pathlib.Path | BinaryIO,
     *,
-    check: bool = ...,
     return_algorithm: Literal[False],
 ) -> np.ndarray[Any, Any]:
     ...
@@ -58,7 +65,6 @@ def read_acd_binary(
 def read_acd_binary(
     file: str | pathlib.Path | BinaryIO,
     *,
-    check: bool = ...,
     return_algorithm: Literal[True],
 ) -> tuple[np.ndarray[Any, Any], input.RTAlgorithm]:
     ...
@@ -77,7 +83,11 @@ def read_acd_binary(
     return_algorithm: bool = False,
 ) -> np.ndarray[Any, Any] | tuple[np.ndarray[Any, Any], input.RTAlgorithm]:
     """
-    Read atmospheric correction data binary file.
+    Read binary atmospheric correction data file.
+
+    Reading binary ACD files is ~140 times faster than reading the text version. The
+    binary ACD files also contain full 32-bit float values instead values rounded to
+    four decimal places.
 
     :param file: File name or file-like object to read.
     :param return_algorithm: Whether to return the detected value of RTOPTIONS.MODTRN
