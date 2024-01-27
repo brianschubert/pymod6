@@ -183,7 +183,7 @@ def test_acd_text_binary_match(modtran_exec, tmp_path, algo, simple_case) -> Non
 
 
 @pytest.mark.parametrize("mode", list(mod_input.RTExecutionMode))
-def test_sli_json_match(modtran_exec, tmp_path, mode, simple_case) -> None:
+def test_tape7_sli_json_match(modtran_exec, tmp_path, mode, simple_case) -> None:
     if mode in (
         mod_input.RTExecutionMode.RT_SOLAR_IRRADIANCE,
         mod_input.RTExecutionMode.RT_LUNAR_IRRADIANCE,
@@ -277,4 +277,53 @@ def test_sli_json_match(modtran_exec, tmp_path, mode, simple_case) -> None:
     for sli_var in sli_data.data_vars.values():
         np.testing.assert_allclose(
             sli_var.data, json_data[sli2json[sli_var.name]], rtol=1e-5, atol=1e-6
+        )
+
+
+@pytest.mark.parametrize("mode", list(mod_input.RTExecutionMode))
+def test_tape7_sli_binary_match(modtran_exec, tmp_path, mode, simple_case) -> None:
+    if mode in (
+        mod_input.RTExecutionMode.RT_SOLAR_IRRADIANCE,
+        mod_input.RTExecutionMode.RT_LUNAR_IRRADIANCE,
+    ):
+        pytest.skip("irradiance mode not yet supported")
+
+    input_json = (
+        mod_input.ModtranInputBuilder()
+        .add_case(
+            simple_case,
+            RTOPTIONS__IEMSCT=mode,
+            # RTOPTIONS__IMULT=mod_input.RTMultipleScattering.RT_NO_MULTIPLE_SCATTER,
+        )
+        .finish_case()
+        .build_json_input(output_legacy=True, binary=True, output_sli=True)
+    )
+    result = modtran_exec.run(input_json, work_dir=tmp_path)
+    assert result.process.returncode == 0
+    assert "Error" not in result.process.stdout
+
+    case_files: pymod6.output._nav.CaseResultFilesNavigator
+    [case_files] = result.cases_output_files
+
+    # Read SLI spectral library formatted outputs.
+    sli_data = mod_output.read_sli(case_files.sli_header)
+
+    # Read binary tape7 spectral outputs.
+    binary_data = mod_output.read_tape7_binary(case_files.tape7_binary)
+
+    for field_name in binary_data.dtype.names:
+        if (
+            mode == mod_input.RTExecutionMode.RT_TRANSMITTANCE
+            and field_name == "-log combin"
+        ):
+            # Only present in .tp7 text and binary files. Not included in .csv or SLI outputsl.
+            continue
+
+        if field_name == "freq":
+            sli_name = "wavelength"
+        else:
+            sli_name = field_name
+
+        np.testing.assert_allclose(
+            binary_data[field_name], sli_data[sli_name], rtol=1e-8, atol=1e-14
         )

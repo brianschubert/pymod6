@@ -37,6 +37,126 @@ _AtmoCorrectDataFileDtype: Final = np.dtype(
     ]
 )
 
+_Tape7TransmittanceDType: Final = np.dtype(
+    [
+        ("freq", "<f4"),
+        ("combin trans", "<f4"),
+        ("H2O trans", "<f4"),
+        ("umix trans", "<f4"),
+        ("O3 trans", "<f4"),
+        ("trace trans", "<f4"),
+        ("N2 trans", "<f4"),
+        ("H2Ocnt trans", "<f4"),
+        ("molec scat", "<f4"),
+        ("aercld trans", "<f4"),
+        ("HNO3 trans", "<f4"),
+        ("aercld abtrns", "<f4"),
+        ("-log combin", "<f4"),  # NOTE: only present in tape7, not output to SLI or CSV
+        ("CO2 trans", "<f4"),
+        ("CO trans", "<f4"),
+        ("CH4 trans", "<f4"),
+        ("N2O trans", "<f4"),
+        ("O2 trans", "<f4"),
+        ("NH3 trans", "<f4"),
+        ("NO trans", "<f4"),
+        ("NO2 trans", "<f4"),
+        ("SO2 trans", "<f4"),
+        ("cloud trans", "<f4"),
+        ("F11 trans", "<f4"),
+        ("F12 trans", "<f4"),
+        ("CCl3F trans", "<f4"),
+        ("CF4 trans", "<f4"),
+        ("F22 trans", "<f4"),
+        ("F113 trans", "<f4"),
+        ("F114 trans", "<f4"),
+        ("F115 trans", "<f4"),
+        ("ClONO2 trans", "<f4"),
+        ("HNO4 trans", "<f4"),
+        ("CHCl2F trans", "<f4"),
+        ("CCl4 trans", "<f4"),
+        ("N2O5 trans", "<f4"),
+        ("H2-H2 trans", "<f4"),
+        ("H2-He trans", "<f4"),
+        ("H2-CH4 trans", "<f4"),
+        ("CH4-CH4 trans", "<f4"),
+    ]
+)
+
+_Tape7RadianceDType: Final = np.dtype(
+    [
+        ("freq", "<f4"),
+        ("total transmittance", "<f4"),
+        ("path emission", "<f4"),
+        ("path thermal scat", "<f4"),
+        ("surface emission", "<f4"),
+        ("path multiple scat", "<f4"),
+        ("path single scat", "<f4"),
+        ("ground reflect", "<f4"),
+        ("direct reflect", "<f4"),
+        ("total radiance", "<f4"),
+        ("reference irradiance", "<f4"),
+        ("irradiance at observer", "<f4"),
+        ("- nat log path trans", "<f4"),
+        ("directional emissivity", "<f4"),
+        ("top-of-atmosphere irradiance", "<f4"),
+        ("brightness temp", "<f4"),
+    ]
+)
+
+_Tape7RadianceThermalOnlyDType: Final = np.dtype(
+    [
+        ("freq", "<f4"),
+        ("total transmittance", "<f4"),
+        ("path emission", "<f4"),
+        ("path thermal scat", "<f4"),
+        ("surface emission", "<f4"),
+        # ("path multiple scat", "<f4"),
+        # ("path single scat", "<f4"),
+        ("ground reflect", "<f4"),
+        # ("direct reflect", "<f4"),
+        ("total radiance", "<f4"),
+        # ("reference irradiance", "<f4"),
+        # ("irradiance at observer", "<f4"),
+        ("- nat log path trans", "<f4"),
+        ("directional emissivity", "<f4"),
+        # ("top-of-atmosphere irradiance", "<f4"),
+        ("brightness temp", "<f4"),
+    ]
+)
+
+_Tape7TransmittanceFileDType: Final = np.dtype(
+    [
+        ("_delim_A0_0", "<u4"),
+        ("data", _Tape7TransmittanceDType),
+        ("_delim_A0_1", "<u4"),
+    ]
+)
+
+_Tape7RadianceFileDType: Final = np.dtype(
+    [
+        ("_delim_74_0", "<u4"),
+        ("data", _Tape7RadianceDType),
+        ("_fill_zero_0", "<u4", 11),
+        ("_fill_99", "<f4"),
+        ("_fill_zero_1", "<u4"),
+        ("_delim_74_1", "<u4"),
+    ]
+)
+
+_Tape7RadianceThermalOnlyFileDType: Final = np.dtype(
+    [
+        ("_delim_48_0", "<u4"),
+        ("data", _Tape7RadianceThermalOnlyDType),
+        ("_fill_zero_0", "<u4", 6),
+        ("_fill_99", "<f4"),
+        ("_fill_zero_1", "<u4"),
+        ("_delim_48_1", "<u4"),
+    ]
+)
+
+
+_Tape7HeaderLength: Final = 0x6F
+
 
 def read_acd_text(
     file: pathlib.Path | TextIO, *, dtype: npt.DTypeLike = _AtmoCorrectDataDType
@@ -177,3 +297,38 @@ def read_sli(file: str | pathlib.Path) -> xr.Dataset:
         coords={"output": spec_lib.names, "wavelength": spec_lib.bands.centers},
         attrs=spec_lib.metadata,
     ).to_dataset("output")
+
+
+def read_tape7_binary(
+    file: str | pathlib.Path | BinaryIO,
+) -> np.ndarray[Any, Any]:
+    cm: ContextManager[BinaryIO]
+    if _util.is_binary_io(file):
+        cm = contextlib.nullcontext(file)
+    else:
+        cm = open(cast("str | pathlib.Path", file), "rb")
+
+    with cm as fd:
+        buffer = fd.read()
+
+    # Infer spectra type by examining the "row delimiter" word.
+    # Each "row" begins and ends with a particular word, which is different for each spectra output type.
+    spectra_type_indicator = buffer[_Tape7HeaderLength]
+    try:
+        # TODO: irradiance support
+        inferred_dtype = {
+            0x48: _Tape7RadianceThermalOnlyFileDType,
+            0x74: _Tape7RadianceFileDType,
+            0xA0: _Tape7TransmittanceFileDType,
+        }[spectra_type_indicator]
+    except KeyError:
+        raise ValueError("unable to determined spectra type")
+
+    contents = np.frombuffer(
+        buffer,
+        offset=_Tape7HeaderLength,
+        dtype=inferred_dtype,
+    )
+    data = contents["data"]
+
+    return data
