@@ -12,7 +12,7 @@ from pymod6.input import _json
 
 
 @dataclass
-class _ModtranOutputFiles(Sequence["_CaseResultFilesNavigator"]):
+class ModtranOutputFiles(Sequence["CaseResultFilesNavigator"]):
     """
     Collection of output files from a MODTRAN run, organized by case.
 
@@ -27,23 +27,23 @@ class _ModtranOutputFiles(Sequence["_CaseResultFilesNavigator"]):
     # Sequence.__getitem__ overloads required by type checkers.
 
     @overload
-    def __getitem__(self, case_index: int, /) -> _CaseResultFilesNavigator:
+    def __getitem__(self, case_index: int, /) -> CaseResultFilesNavigator:
         ...
 
     @overload
-    def __getitem__(self, case_index: slice, /) -> Sequence[_CaseResultFilesNavigator]:
+    def __getitem__(self, case_index: slice, /) -> Sequence[CaseResultFilesNavigator]:
         ...
 
     def __getitem__(
         self, case_index: int | slice, /
-    ) -> _CaseResultFilesNavigator | Sequence[_CaseResultFilesNavigator]:
+    ) -> CaseResultFilesNavigator | Sequence[CaseResultFilesNavigator]:
         if isinstance(case_index, slice):
             # https://docs.python.org/3/reference/datamodel.html#slice.indices
             return [self[idx] for idx in range(*case_index.indices(len(self)))]
 
         # TODO: fallback to case listed in 'CASE TEMPLATE' on lookup fail?
         case = self.input["MODTRAN"][case_index]
-        return _CaseResultFilesNavigator(
+        return CaseResultFilesNavigator(
             self.work_dir,
             case["MODTRANINPUT"]["FILEOPTIONS"],
             case["MODTRANINPUT"].get("NAME"),
@@ -54,7 +54,7 @@ class _ModtranOutputFiles(Sequence["_CaseResultFilesNavigator"]):
 
 
 @dataclass
-class _CaseResultFilesNavigator:
+class CaseResultFilesNavigator:
     """
     Index into available result files for a single case.
 

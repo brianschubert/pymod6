@@ -13,7 +13,7 @@ def test_files_exist_legacy_text(modtran_exec, tmp_path) -> None:
         .build_json_input(output_legacy=True, json_opt=mod_input.JSONPrintOpt.WRT_NONE)
     )
 
-    case_files: pymod6.output._nav._CaseResultFilesNavigator
+    case_files: pymod6.output._nav.CaseResultFilesNavigator
     result_proc, [case_files] = modtran_exec.run(input_json, work_dir=tmp_path)
 
     assert result_proc.returncode == 0
@@ -40,7 +40,7 @@ def test_files_exist_legacy_binary(modtran_exec, tmp_path) -> None:
         )
     )
 
-    case_files: pymod6.output._nav._CaseResultFilesNavigator
+    case_files: pymod6.output._nav.CaseResultFilesNavigator
     result_proc, [case_files] = modtran_exec.run(input_json, work_dir=tmp_path)
 
     assert result_proc.returncode == 0
@@ -66,7 +66,7 @@ def test_files_exist_sli(modtran_exec, tmp_path) -> None:
         .build_json_input(output_sli=True, json_opt=mod_input.JSONPrintOpt.WRT_NONE)
     )
 
-    case_files: pymod6.output._nav._CaseResultFilesNavigator
+    case_files: pymod6.output._nav.CaseResultFilesNavigator
     result_proc, [case_files] = modtran_exec.run(input_json, work_dir=tmp_path)
 
     assert result_proc.returncode == 0
@@ -87,7 +87,7 @@ def test_files_exist_csv(modtran_exec, tmp_path) -> None:
         .build_json_input(output_csv=True, json_opt=mod_input.JSONPrintOpt.WRT_NONE)
     )
 
-    case_files: pymod6.output._nav._CaseResultFilesNavigator
+    case_files: pymod6.output._nav.CaseResultFilesNavigator
     result_proc, [case_files] = modtran_exec.run(input_json, work_dir=tmp_path)
 
     assert result_proc.returncode == 0
@@ -106,7 +106,7 @@ def test_files_exist_json(modtran_exec, tmp_path) -> None:
             .build_json_input(json_opt=json_opt)
         )
 
-        case_files: pymod6.output._nav._CaseResultFilesNavigator
+        case_files: pymod6.output._nav.CaseResultFilesNavigator
         result_proc, [case_files] = modtran_exec.run(input_json, work_dir=tmp_path)
 
         assert result_proc.returncode == 0

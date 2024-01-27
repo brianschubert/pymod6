@@ -15,14 +15,14 @@ from pymod6._env import ModtranEnv
 from pymod6.input import JSONInput
 
 from . import _util
-from .output._nav import _ModtranOutputFiles
+from .output._nav import ModtranOutputFiles
 
 _PathLike: TypeAlias = Union[str, os.PathLike[str]]
 
 
 class _ModtranResult(NamedTuple):
     process: subprocess.CompletedProcess[str]
-    cases_output_files: _ModtranOutputFiles
+    cases_output_files: ModtranOutputFiles
 
 
 class ModtranExecutable:
@@ -74,7 +74,7 @@ class ModtranExecutable:
                 text=True,
             )
 
-        return _ModtranResult(result, _ModtranOutputFiles(input_file, work_dir))
+        return _ModtranResult(result, ModtranOutputFiles(input_file, work_dir))
 
     def run_parallel(
         self,
