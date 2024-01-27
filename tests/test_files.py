@@ -10,7 +10,7 @@ def test_files_exist_legacy_text(modtran_exec, tmp_path) -> None:
         mod_input.ModtranInputBuilder()
         .add_case(mod_input.basecases.VNIR)
         .finish_case()
-        .build_json_input(output_legacy=True)
+        .build_json_input(output_legacy=True, json_opt=mod_input.JSONPrintOpt.WRT_NONE)
     )
 
     case_files: pymod6.output._nav._CaseResultFilesNavigator
@@ -35,7 +35,9 @@ def test_files_exist_legacy_binary(modtran_exec, tmp_path) -> None:
         mod_input.ModtranInputBuilder()
         .add_case(mod_input.basecases.VNIR)
         .finish_case()
-        .build_json_input(output_legacy=True, binary=True)
+        .build_json_input(
+            output_legacy=True, binary=True, json_opt=mod_input.JSONPrintOpt.WRT_NONE
+        )
     )
 
     case_files: pymod6.output._nav._CaseResultFilesNavigator
@@ -61,7 +63,7 @@ def test_files_exist_sli(modtran_exec, tmp_path) -> None:
         mod_input.ModtranInputBuilder()
         .add_case(mod_input.basecases.VNIR)
         .finish_case()
-        .build_json_input(output_sli=True)
+        .build_json_input(output_sli=True, json_opt=mod_input.JSONPrintOpt.WRT_NONE)
     )
 
     case_files: pymod6.output._nav._CaseResultFilesNavigator
@@ -82,7 +84,7 @@ def test_files_exist_csv(modtran_exec, tmp_path) -> None:
         mod_input.ModtranInputBuilder()
         .add_case(mod_input.basecases.VNIR)
         .finish_case()
-        .build_json_input(output_csv=True)
+        .build_json_input(output_csv=True, json_opt=mod_input.JSONPrintOpt.WRT_NONE)
     )
 
     case_files: pymod6.output._nav._CaseResultFilesNavigator
