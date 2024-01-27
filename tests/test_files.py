@@ -153,8 +153,7 @@ def test_acd_text_binary_match(modtran_exec, tmp_path) -> None:
     acd_binary = pymod6.output.read_acd_binary(
         modtran_exec.run(input_acd_binary, work_dir=tmp_path)
         .cases_output_files[0]
-        .acd_binary,
-        check=True,
+        .acd_binary
     )
 
     for field_name in acd_binary.dtype.names:
