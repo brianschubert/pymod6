@@ -38,6 +38,16 @@ class RTExecutionMode(_StrEnum):
     RT_LUNAR_AND_THERMAL = "RT_LUNAR_AND_THERMAL"
     RT_LUNAR_IRRADIANCE = "RT_LUNAR_IRRADIANCE"
 
+    @property
+    def spectral_output_keyword(
+        self,
+    ) -> Literal["TRANSMITTANCE", "RADIANCE", "IRRADIANCE"]:
+        if self == self.RT_TRANSMITTANCE:
+            return "TRANSMITTANCE"
+        if self in (self.RT_SOLAR_IRRADIANCE, self.RT_LUNAR_IRRADIANCE):
+            return "IRRADIANCE"
+        return "RADIANCE"
+
 
 @enum.unique
 class RTAlgorithm(_StrEnum):
