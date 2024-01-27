@@ -68,7 +68,7 @@ class ModtranInputBuilder:
         output_sli: bool = False,
         output_csv: bool = False,
         binary: bool = False,
-        json_opt: JSONPrintOpt = JSONPrintOpt.WRT_NONE,
+        json_opt: JSONPrintOpt = JSONPrintOpt.WRT_STAT_INPUT,
     ) -> JSONInput:
         case_digits = _util.num_digits(len(self._cases) - 1)
 
