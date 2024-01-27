@@ -17,9 +17,7 @@ def modtran_exec(modtran_env) -> pymod6._exec.ModtranExecutable:
     mod_exec = pymod6._exec.ModtranExecutable(env=modtran_env)
 
     # Check license is active.
-    if (
-        status := mod_exec.license_status()
-    ) != "STAT_VALID MODTRAN license is activated.":
+    if not (status := mod_exec.license_status()).startswith("STAT_VALID"):
         pytest.skip(f"MODTRAN license not active: {status}")
 
     # Check version is compatible.
