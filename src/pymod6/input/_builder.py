@@ -67,6 +67,7 @@ class ModtranInputBuilder:
         output_legacy: bool = False,
         output_sli: bool = False,
         output_csv: bool = False,
+        outupt_corrk: bool = False,
         binary: bool = False,
         json_opt: JSONPrintOpt = JSONPrintOpt.WRT_STAT_INPUT,
     ) -> JSONInput:
@@ -94,6 +95,7 @@ class ModtranInputBuilder:
                 file_options["CSVPRNT"] = f"{root_name}.csv"
 
             file_options["BINARY"] = binary
+            file_options["CKPRNT"] = outupt_corrk
 
         input_json: JSONInput = {
             "MODTRAN": [{"MODTRANINPUT": case} for case in self._cases]

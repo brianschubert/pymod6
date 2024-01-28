@@ -84,33 +84,51 @@ class CaseResultFilesNavigator:
 
     @property
     def sli_header(self) -> pathlib.Path:
-        return self._sli_appended(".hdr")
+        return self._resolve_sli(".hdr")
 
     @property
     def sli_data(self) -> pathlib.Path:
-        return self._sli_appended(".sli")
+        return self._resolve_sli(".sli")
 
     @property
     def sli_flux_header(self) -> pathlib.Path:
-        return self._sli_appended("_flux.hdr")
+        return self._resolve_sli("_flux.hdr")
 
     @property
     def sli_flux_data(self) -> pathlib.Path:
-        return self._sli_appended("_flux.sli")
+        return self._resolve_sli("_flux.sli")
 
     @property
-    def csv_txt(self) -> pathlib.Path:
-        try:
-            csv_root = self.file_options["CSVPRNT"]
-        except KeyError:
-            # CSV file not requested. Return sentinel that should fail .exists() checks.
-            csv_root = ".CSVPRNT_NOT_SET"
+    def sli_scan_header(self) -> pathlib.Path:
+        return self._resolve_sli("_scan.hdr")
 
-        path = self.work_dir.joinpath(csv_root)
-        # Add .txt suffix only if no suffix is present.
-        if path.suffix == "":
-            path = path.with_suffix(".txt")
-        return path
+    @property
+    def sli_scan_data(self) -> pathlib.Path:
+        return self._resolve_sli("_scan.sli")
+
+    @property
+    def sli_corrk_header(self) -> pathlib.Path:
+        return self._resolve_sli("_highres.hdr")
+
+    @property
+    def sli_corrk_data(self) -> pathlib.Path:
+        return self._resolve_sli("_highres.sli")
+
+    @property
+    def csv(self) -> pathlib.Path:
+        return self._resolved_csv("")
+
+    @property
+    def csv_flux(self) -> pathlib.Path:
+        return self._resolved_csv("_flux")
+
+    @property
+    def csv_scan(self) -> pathlib.Path:
+        return self._resolved_csv("_scan")
+
+    @property
+    def csv_corrk(self) -> pathlib.Path:
+        return self._resolved_csv("_highres")
 
     @property
     def acd_text(self) -> pathlib.Path:
@@ -156,6 +174,22 @@ class CaseResultFilesNavigator:
     def wrn(self) -> pathlib.Path:
         return self._resolve_legacy_path(".wrn", "warnings.txt")
 
+    @property
+    def corrk_trans_text(self) -> pathlib.Path:
+        return self._resolve_legacy_path(".t_k", "t_kdis.dat")
+
+    @property
+    def corrk_trans_binary(self) -> pathlib.Path:
+        return self._resolve_legacy_path("_b.t_k", "t_kdis.bin")
+
+    @property
+    def corrk_rad_text(self) -> pathlib.Path:
+        return self._resolve_legacy_path(".r_k", "r_kdis.dat")
+
+    @property
+    def corrk_rad_binary(self) -> pathlib.Path:
+        return self._resolve_legacy_path("_b.r_k", "r_kdis.bin")
+
     def all_files(self, *, only_existing: bool = False) -> list[pathlib.Path]:
         file_properties = [
             getattr(self, name)
@@ -175,13 +209,28 @@ class CaseResultFilesNavigator:
 
         return "mod6" if self.name is None else self.name.strip()
 
-    def _sli_appended(self, tail: str) -> pathlib.Path:
+    def _resolve_sli(self, tail: str) -> pathlib.Path:
         try:
             sli_root = self.file_options["SLIPRNT"]
         except KeyError:
             # SLI files not requested. Return sentinel that should fail .exists() checks.
             sli_root = ".SLIPRNT_NOT_SET"
         return self.work_dir.joinpath(f"{sli_root}{tail}")
+
+    def _resolved_csv(self, tail: str) -> pathlib.Path:
+        try:
+            csv_root = self.file_options["CSVPRNT"]
+        except KeyError:
+            # CSV file not requested. Return sentinel that should fail .exists() checks.
+            csv_root = ".CSVPRNT_NOT_SET"
+
+        path = self.work_dir.joinpath(csv_root)
+        path = path.with_stem(f"{path.stem}{tail}")
+
+        # Add .txt suffix only if no suffix is present.
+        if path.suffix == "":
+            path = path.with_suffix(".txt")
+        return path
 
     def _resolve_legacy_path(self, tail: str, blank_name: str) -> pathlib.Path:
         """
