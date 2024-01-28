@@ -313,16 +313,18 @@ def read_tape7_binary(
 
     # Infer spectra type by examining the "row delimiter" word.
     # Each "row" begins and ends with a particular word, which is different for each spectra output type.
-    spectra_type_indicator = buffer[_Tape7HeaderLength]
+    row_delimiter = buffer[_Tape7HeaderLength]
     try:
         # TODO: irradiance support
         inferred_dtype = {
             0x48: _Tape7RadianceThermalOnlyFileDType,
             0x74: _Tape7RadianceFileDType,
             0xA0: _Tape7TransmittanceFileDType,
-        }[spectra_type_indicator]
+        }[row_delimiter]
     except KeyError:
-        raise ValueError("unable to determined spectra type")
+        raise ValueError(
+            f"unable to determine spectra type - unknown delimiter byte 0x{row_delimiter:x}"
+        )
 
     contents = np.frombuffer(
         buffer,
@@ -330,5 +332,15 @@ def read_tape7_binary(
         dtype=inferred_dtype,
     )
     data = contents["data"]
+
+    # Sanity check - examine start and end word of first and law row.
+    check_delims = (
+        (contents[0][inferred_dtype.names[0]], contents[0][inferred_dtype.names[-1]]),
+        (contents[-1][inferred_dtype.names[0]], contents[-1][inferred_dtype.names[-1]]),
+    )
+    if check_delims != ((row_delimiter, row_delimiter), (row_delimiter, row_delimiter)):
+        raise ValueError(
+            f"got unexpected word(s) in (first, last)-row delimiter columns: {check_delims}"
+        )
 
     return data
