@@ -34,13 +34,12 @@ class ModtranEnv:
 
     Examples
     --------
-
     >>> from pathlib import Path
     >>> mod_env = ModtranEnv(
     ...     exe=Path("~/path/to/executable").expanduser(),
     ...     data=Path("~/path/to/DATA").expanduser(),
     ... )
-    >>> str(mod_env.exe)  # doctest: +ELLIPSIS
+    >>> str(mod_env.exe)
     '.../path/to/executable'
     >>> str(mod_env.data)
     '.../path/to/DATA'
@@ -104,6 +103,17 @@ class ModtranEnv:
         -------
         Self
             Inferred MODTRAN environment.
+
+        Examples
+        --------
+        >>> import io
+        >>> shell_file = io.StringIO('''
+        ...     export MODTRAN_EXE=/path/to/exe
+        ...     export MODTRAN_DATA=/path/to/DATA
+        ...     MODTRAN_OTHER=other
+        ... ''')
+        >>> ModtranEnv.from_shell_file(shell_file)
+        ModtranEnv(exe=...Path('/path/to/exe'), data=...Path('/path/to/DATA'), extra={'MODTRAN_OTHER': 'other'})
         """
         cm: ContextManager[TextIO]
         if _util.is_text_io(file):
@@ -127,7 +137,7 @@ class ModtranEnv:
 
         Returns
         -------
-        dict[str, str]
+        environ : dict[str, str]
             Environment variable mapping, like ``os.environ``.
         """
         return {
