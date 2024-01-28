@@ -21,7 +21,7 @@ from . import _util
 from ._env import ModtranEnv
 from .input import _json
 
-_AtmoCorrectDataDType: Final = np.dtype(
+AtmoCorrectDataDType: Final = np.dtype(
     [
         ("freq", "<f4"),
         ("los", "<i4"),
@@ -34,15 +34,10 @@ _AtmoCorrectDataDType: Final = np.dtype(
         ("spherical_albedo", "<f4"),
     ]
 )
-_AtmoCorrectDataFileDtype: Final = np.dtype(
-    [
-        ("_delim1", "<i4"),
-        ("data", _AtmoCorrectDataDType),
-        ("_delim2", "<i4"),
-    ]
-)
+"""Numpy dtype for Atmospheric Correction Data (ACD) outputs."""
 
-_Tape7TransmittanceDType: Final = np.dtype(
+
+Tape7TransmittanceDType: Final = np.dtype(
     [
         ("freq", "<f4"),
         ("combin trans", "<f4"),
@@ -56,7 +51,9 @@ _Tape7TransmittanceDType: Final = np.dtype(
         ("aercld trans", "<f4"),
         ("HNO3 trans", "<f4"),
         ("aercld abtrns", "<f4"),
-        ("-log combin", "<f4"),  # NOTE: only present in tape7, not output to SLI or CSV
+        # NOTE: '-log combin' is only present in tape7 output files (text and binary).
+        # It is not included in the JSON, SLI, or CSV outputs.
+        ("-log combin", "<f4"),
         ("CO2 trans", "<f4"),
         ("CO trans", "<f4"),
         ("CH4 trans", "<f4"),
@@ -86,8 +83,9 @@ _Tape7TransmittanceDType: Final = np.dtype(
         ("CH4-CH4 trans", "<f4"),
     ]
 )
+"""Numpy dtype for spectral *transmittance* outputs (tape7)."""
 
-_Tape7RadianceDType: Final = np.dtype(
+Tape7RadianceDType: Final = np.dtype(
     [
         ("freq", "<f4"),
         ("total transmittance", "<f4"),
@@ -107,8 +105,9 @@ _Tape7RadianceDType: Final = np.dtype(
         ("brightness temp", "<f4"),
     ]
 )
+"""Numpy dtype for spectral *radiance* outputs (tape7)."""
 
-_Tape7RadianceThermalOnlyDType: Final = np.dtype(
+Tape7RadianceThermalOnlyDType: Final = np.dtype(
     [
         ("freq", "<f4"),
         ("total transmittance", "<f4"),
@@ -128,11 +127,23 @@ _Tape7RadianceThermalOnlyDType: Final = np.dtype(
         ("brightness temp", "<f4"),
     ]
 )
+"""Numpy dtype for *thermal-only* spectral *radiance* outputs (tape7)."""
+
+
+# Raw file dtypes.
+
+_AtmoCorrectDataFileDtype: Final = np.dtype(
+    [
+        ("_delim1", "<i4"),
+        ("data", AtmoCorrectDataDType),
+        ("_delim2", "<i4"),
+    ]
+)
 
 _Tape7TransmittanceFileDType: Final = np.dtype(
     [
         ("_delim_A0_0", "<u4"),
-        ("data", _Tape7TransmittanceDType),
+        ("data", Tape7TransmittanceDType),
         ("_delim_A0_1", "<u4"),
     ]
 )
@@ -140,7 +151,7 @@ _Tape7TransmittanceFileDType: Final = np.dtype(
 _Tape7RadianceFileDType: Final = np.dtype(
     [
         ("_delim_74_0", "<u4"),
-        ("data", _Tape7RadianceDType),
+        ("data", Tape7RadianceDType),
         ("_fill_zero_0", "<u4", 11),
         ("_fill_99", "<f4"),
         ("_fill_zero_1", "<u4"),
@@ -151,7 +162,7 @@ _Tape7RadianceFileDType: Final = np.dtype(
 _Tape7RadianceThermalOnlyFileDType: Final = np.dtype(
     [
         ("_delim_48_0", "<u4"),
-        ("data", _Tape7RadianceThermalOnlyDType),
+        ("data", Tape7RadianceThermalOnlyDType),
         ("_fill_zero_0", "<u4", 6),
         ("_fill_99", "<f4"),
         ("_fill_zero_1", "<u4"),
@@ -169,15 +180,23 @@ _COMMENT_PATTERN: Final = re.compile(
 
 
 def read_acd_text(
-    file: pathlib.Path | TextIO, *, dtype: npt.DTypeLike = _AtmoCorrectDataDType
+    file: pathlib.Path | TextIO, *, dtype: npt.DTypeLike = AtmoCorrectDataDType
 ) -> np.ndarray[Any, Any]:
     """
-    Read ASCII atmospheric correction data file.
+    Read ASCII atmospheric correction data file (`.acd`).
 
-    :param file: File name or file-like object to read.
-    :param dtype: Desired datatype. Defaults to structure with mixed integers and
-        floats. Set to "f4" for homogenous float outputs.
-    :return: ACD date as numpy array.
+    Parameters
+    ----------
+    file : path or file-like
+        File name or file-like object to read.
+    dtype : optional
+         Desired datatype. Defaults to `AtmoCorrectDataDType`, resulting in a structured array output.
+     Set to `"f4"` for homogenous float outputs.
+
+    Returns
+    -------
+    array : numpy.ndarray
+        ACD data as numpy array.
     """
     return np.loadtxt(file, skiprows=5, dtype=dtype)
 
@@ -213,17 +232,25 @@ def read_acd_binary(
     return_algorithm: bool = False,
 ) -> np.ndarray[Any, Any] | tuple[np.ndarray[Any, Any], _json.RTAlgorithm]:
     """
-    Read binary atmospheric correction data file.
+    Read binary atmospheric correction data file (`_b.acd`).
 
     Reading binary ACD files is ~140 times faster than reading the text version. The
     binary ACD files also contain full 32-bit float values instead values rounded to
     four decimal places.
 
-    :param file: File name or file-like object to read.
-    :param return_algorithm: Whether to return the detected value of RTOPTIONS.MODTRN
-        used to generate the ACD file.
-    :return: ACD data as numpy array, or tuple containing the ACD data and the
-        algorithm indicator.
+    Parameters
+    ----------
+    file : path or file-like
+        File name or file-like object to read.
+    return_algorithm : bool, optional
+        Whether to return the detected value of RTOPTIONS.MODTRN (pymod6.input.RTOptions.MODTRN) used to generate the ACD file.
+
+    Returns
+    -------
+    array : numpy.ndarray
+        ACD data as numpy array.
+    algorithm : pymod6.input.RTAlgorithm, optional
+        Inferred `RTAlgorithm` used to generate the ACD data. Only provided if `return_algorithm` is True.
     """
     # TODO handle multiple cases in one file?
     cm: ContextManager[BinaryIO]
@@ -297,6 +324,20 @@ def read_acd_binary(
 
 
 def read_sli(file: str | pathlib.Path) -> xr.Dataset:
+    """
+    Read spectra outputs from ENVI spectral library.
+
+    Parameters
+    ----------
+    file : file path
+        Path to ENVI spectral library header or data file.
+
+    Returns
+    -------
+    dataset
+        Spectra outputs as an [`xarray.Dataset`](https://docs.xarray.dev/en/stable/generated/xarray.Dataset.html).
+
+    """
     spec_lib = spectral.io.envi.open(file)
     if not isinstance(spec_lib, spectral.io.envi.SpectralLibrary):
         raise ValueError(f"SLI file not a spectral library: {file}")
@@ -312,6 +353,22 @@ def read_sli(file: str | pathlib.Path) -> xr.Dataset:
 def read_tape7_binary(
     file: str | pathlib.Path | BinaryIO,
 ) -> np.ndarray[Any, Any]:
+    """
+    Read spectra outputs from binary tape7 file (`_b.tp7`).
+
+    Parameters
+    ----------
+    file : path or file-like
+        File name or file-like object to read.
+
+    Returns
+    -------
+    array : numpy.ndarray
+        Spectral outputs as numpy array. The data type will be one of
+        `Tape7TransmittanceDType`, `Tape7RadianceDType`, or `Tape7RadianceThermalOnlyDType`,
+        depending on which spectral outputs are present.
+
+    """
     cm: ContextManager[BinaryIO]
     if _util.is_binary_io(file):
         cm = contextlib.nullcontext(file)
@@ -345,8 +402,8 @@ def read_tape7_binary(
 
     # Sanity check - examine start and end word of first and law row.
     check_delims = (
-        (contents[0][inferred_dtype.names[0]], contents[0][inferred_dtype.names[-1]]),
-        (contents[-1][inferred_dtype.names[0]], contents[-1][inferred_dtype.names[-1]]),
+        (contents[0][inferred_dtype.names[0]], contents[0][inferred_dtype.names[-1]]),  # type: ignore[index]
+        (contents[-1][inferred_dtype.names[0]], contents[-1][inferred_dtype.names[-1]]),  # type: ignore[index]
     )
     if check_delims != ((row_delimiter, row_delimiter), (row_delimiter, row_delimiter)):
         raise ValueError(
@@ -357,8 +414,26 @@ def read_tape7_binary(
 
 
 def read_json_input(
-    s: str, strip_comments: bool = True, validate: bool = True
+    s: str, *, strip_comments: bool = False, validate: bool = True
 ) -> _json.JSONInput:
+    """
+    Read input JSON file.
+
+    Parameters
+    ----------
+    s : str
+        JSON string.
+    strip_comments : bool, optional
+        Whether to strip comments after a `#` symbol.
+    validate : bool, optional
+        Whether to validate the JSON input against the expected input schema.
+
+    Returns
+    -------
+    pymod6.input.JSONInput
+        Dictionary representation of the JSON input file.
+
+    """
     if strip_comments:
         input_dict = json.loads(
             s, cls=_CommentedJSONDecoder, comment_pattern=_COMMENT_PATTERN
@@ -372,9 +447,27 @@ def read_json_input(
     return input_dict  # type: ignore
 
 
-def load_input_defaults(mod_data: pathlib.Path | None = None) -> ModtranInput:
+def load_input_defaults(
+    mod_data: str | pathlib.Path | None = None,
+) -> _json.ModtranInput:
+    """
+    Load the default JSON keywords from the `keywords.json` file in the MODTRAN
+    DATA directory.
+
+    Parameters
+    ----------
+    mod_data : path, optional
+        Path to MODTRAN DATA directory. Defaults to the `MODTRAN_DATA` environment variable.
+
+    Returns
+    -------
+    pymod6.input.ModtranInput
+        Dictionary representation of the JSON input file defaults.
+    """
     if mod_data is None:
         mod_data = ModtranEnv.from_environ().data
+    else:
+        mod_data = pathlib.Path(mod_data)
 
     with mod_data.joinpath("keywords.json").open("r") as fd:
         raw_dict: dict[str, Any] = json.load(fd)["VALID_MODTRAN"]["MODTRANINPUT"]

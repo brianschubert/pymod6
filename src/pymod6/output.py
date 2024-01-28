@@ -63,11 +63,13 @@ class CaseResultFilesNavigator:
 
     Not all files will exist, depending on execution options.
 
-    WARNING: Some files may contain results for multiple cases
-    (e.g. '.csv', '.acd', ...) if the same options are used in multiple cases.
+    .. warning::
+        Some files may contain results for multiple cases (e.g. '.csv', '.acd', ...)
+        if the same options are used in multiple cases.
 
-    SLI files will have numeric suffixes added if multiple cases use the same
-    SLIPRNT, which this class does not account for.
+    .. warning::
+        SLI files will have numeric suffixes added if multiple cases use the same SLIPRNT,
+         which this class does not account for.
     """
 
     work_dir: pathlib.Path
