@@ -20,19 +20,19 @@ _SCALE_PREFIX: TypeAlias = Literal[
     "P", "T", "G", "M", "k", "-", "c", "m", "u", "n", "p"
 ]
 
-_SCALE_PREFIX_FREQUENCY: TypeAlias = Union[
+_UNIT_FREQUENCY: TypeAlias = Union[
     _SCALE_PREFIX,
     Literal[
         "PHz", "THz", "GHz", "MHz", "kHz", "-Hz", "cHz", "mHz", "uHz", "nHz", "pHz"
     ],
 ]
 
-_SCALE_PREFIX_WAVELENGTH: TypeAlias = Union[
+_UNIT_WAVELENGTH: TypeAlias = Union[
     _SCALE_PREFIX,
     Literal["Pm", "Tm", "Gm", "Mm", "km", "-m", "cm", "mm", "um", "nm", "pm"],
 ]
 
-_SCALE_PREFIX_WAVENUMBER: TypeAlias = Union[
+_UNIT_WAVENUMBER: TypeAlias = Union[
     _SCALE_PREFIX,
     Literal[
         "Pm-1",
@@ -53,6 +53,7 @@ _T = TypeVar("_T", float, np.ndarray[Any, np.dtype[np.floating[Any]]])
 
 
 SPEED_OF_LIGHT: Final[float] = 299792458.0
+"""Speed of light in a vacuum in meters per second."""
 
 _BASE_SCALES: Final[dict[_SCALE_PREFIX, float]] = {
     "P": 1e15,
@@ -78,11 +79,11 @@ class _FrequencyMeasure(abc.ABC, Generic[_T]):
 
     _SCALES: ClassVar[dict[str, float]]
 
-    def __init_subclass__(cls, suffix: str = "", **kwargs: Any) -> None:
+    def __init_subclass__(cls, unit_suffix: str = "", **kwargs: Any) -> None:
         super().__init_subclass__(**kwargs)
         cls._SCALES = {
             **_BASE_SCALES,  # type: ignore[dict-item]
-            **{f"{p}{suffix}": v for p, v in _BASE_SCALES.items()},
+            **{f"{p}{unit_suffix}": v for p, v in _BASE_SCALES.items()},
         }
 
     # Note: to avoid performance penalties, we should avoid nested function calls
@@ -90,19 +91,19 @@ class _FrequencyMeasure(abc.ABC, Generic[_T]):
     # implemented directly instead of implementing some in terms of others.
 
     @abc.abstractmethod
-    def as_frequency(self, scale: _SCALE_PREFIX_FREQUENCY) -> _T:
-        ...
+    def as_frequency(self, unit: _UNIT_FREQUENCY) -> _T:
+        """Convert to a frequency with the given unit."""
 
     @abc.abstractmethod
-    def as_wavelength(self, scale: _SCALE_PREFIX_WAVELENGTH) -> _T:
-        ...
+    def as_wavelength(self, unit: _UNIT_WAVELENGTH) -> _T:
+        """Convert to a wavelength with the given unit."""
 
     @abc.abstractmethod
-    def as_wavenumber(self, scale: _SCALE_PREFIX_WAVENUMBER) -> _T:
-        ...
+    def as_wavenumber(self, unit: _UNIT_WAVENUMBER) -> _T:
+        """Convert to a wavenumber with the given unit."""
 
 
-class Frequency(_FrequencyMeasure[_T], suffix="Hz"):
+class Frequency(_FrequencyMeasure[_T], unit_suffix="Hz"):
     """
     Frequency measurement.
 
@@ -118,20 +119,20 @@ class Frequency(_FrequencyMeasure[_T], suffix="Hz"):
     1250.0
     """
 
-    def __init__(self, value: _T, scale: _SCALE_PREFIX_FREQUENCY) -> None:
+    def __init__(self, value: _T, scale: _UNIT_FREQUENCY) -> None:
         self._value = value * self._SCALES[scale]
 
-    def as_frequency(self, scale: _SCALE_PREFIX_FREQUENCY) -> _T:
-        return self._value / self._SCALES[scale]
+    def as_frequency(self, unit: _UNIT_FREQUENCY) -> _T:
+        return self._value / self._SCALES[unit]
 
-    def as_wavelength(self, scale: _SCALE_PREFIX_WAVELENGTH) -> _T:
-        return SPEED_OF_LIGHT / self._value / Wavelength._SCALES[scale]
+    def as_wavelength(self, unit: _UNIT_WAVELENGTH) -> _T:
+        return SPEED_OF_LIGHT / self._value / Wavelength._SCALES[unit]
 
-    def as_wavenumber(self, scale: _SCALE_PREFIX_WAVENUMBER) -> _T:
-        return self._value / SPEED_OF_LIGHT * Wavenumber._SCALES[scale]
+    def as_wavenumber(self, unit: _UNIT_WAVENUMBER) -> _T:
+        return self._value / SPEED_OF_LIGHT * Wavenumber._SCALES[unit]
 
 
-class Wavelength(_FrequencyMeasure[_T], suffix="m"):
+class Wavelength(_FrequencyMeasure[_T], unit_suffix="m"):
     """
     Wavelength measurement.
 
@@ -147,20 +148,20 @@ class Wavelength(_FrequencyMeasure[_T], suffix="m"):
     4.0
     """
 
-    def __init__(self, value: _T, scale: _SCALE_PREFIX_WAVELENGTH) -> None:
+    def __init__(self, value: _T, scale: _UNIT_WAVELENGTH) -> None:
         self._value = value * self._SCALES[scale]
 
-    def as_frequency(self, scale: _SCALE_PREFIX_FREQUENCY) -> _T:
-        return SPEED_OF_LIGHT / self._value / Frequency._SCALES[scale]
+    def as_frequency(self, unit: _UNIT_FREQUENCY) -> _T:
+        return SPEED_OF_LIGHT / self._value / Frequency._SCALES[unit]
 
-    def as_wavelength(self, scale: _SCALE_PREFIX_WAVELENGTH) -> _T:
-        return self._value / self._SCALES[scale]
+    def as_wavelength(self, unit: _UNIT_WAVELENGTH) -> _T:
+        return self._value / self._SCALES[unit]
 
-    def as_wavenumber(self, scale: _SCALE_PREFIX_WAVENUMBER) -> _T:
-        return 1 / self._value * Wavenumber._SCALES[scale]
+    def as_wavenumber(self, unit: _UNIT_WAVENUMBER) -> _T:
+        return 1 / self._value * Wavenumber._SCALES[unit]
 
 
-class Wavenumber(_FrequencyMeasure[_T], suffix="m-1"):
+class Wavenumber(_FrequencyMeasure[_T], unit_suffix="m-1"):
     """
     Wavenumber measurement.
 
@@ -176,14 +177,14 @@ class Wavenumber(_FrequencyMeasure[_T], suffix="m-1"):
     400.0
     """
 
-    def __init__(self, value: _T, scale: _SCALE_PREFIX_WAVENUMBER) -> None:
+    def __init__(self, value: _T, scale: _UNIT_WAVENUMBER) -> None:
         self._value = value / self._SCALES[scale]
 
-    def as_frequency(self, scale: _SCALE_PREFIX_FREQUENCY) -> _T:
-        return SPEED_OF_LIGHT * self._value / Frequency._SCALES[scale]
+    def as_frequency(self, unit: _UNIT_FREQUENCY) -> _T:
+        return SPEED_OF_LIGHT * self._value / Frequency._SCALES[unit]
 
-    def as_wavelength(self, scale: _SCALE_PREFIX_WAVELENGTH) -> _T:
-        return 1 / self._value / Wavelength._SCALES[scale]
+    def as_wavelength(self, unit: _UNIT_WAVELENGTH) -> _T:
+        return 1 / self._value / Wavelength._SCALES[unit]
 
-    def as_wavenumber(self, scale: _SCALE_PREFIX_WAVENUMBER) -> _T:
-        return self._value * self._SCALES[scale]
+    def as_wavenumber(self, unit: _UNIT_WAVENUMBER) -> _T:
+        return self._value * self._SCALES[unit]
