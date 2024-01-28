@@ -40,7 +40,9 @@ def test_acd_text_binary_match(modtran_exec, tmp_path, algo, simple_case) -> Non
 
 
 @pytest.mark.parametrize("mode", list(mod_input.RTExecutionMode))
-def test_tape7_sli_json_match(modtran_exec, tmp_path, mode, simple_case) -> None:
+def test_tape7_sli_json_match(
+    modtran_exec, tmp_path, mode, simple_case, helpers
+) -> None:
     if mode in (
         mod_input.RTExecutionMode.RT_SOLAR_IRRADIANCE,
         mod_input.RTExecutionMode.RT_LUNAR_IRRADIANCE,
@@ -58,12 +60,7 @@ def test_tape7_sli_json_match(modtran_exec, tmp_path, mode, simple_case) -> None
         .build_json_input(output_sli=True, json_opt=mod_input.JSONPrintOpt.WRT_OUTPUT)
     )
 
-    result = modtran_exec.run(input_json, work_dir=tmp_path)
-    assert result.process.returncode == 0
-    assert "Error" not in result.process.stdout
-
-    case_files: pymod6.output.CaseResultFilesNavigator
-    [case_files] = result.cases_output_files
+    case_files = helpers.run_single_checked(modtran_exec, input_json, tmp_path)
 
     # Read SLI spectral library formatted outputs.
     sli_data = pymod6.io.read_sli(case_files.sli_header)
@@ -138,7 +135,9 @@ def test_tape7_sli_json_match(modtran_exec, tmp_path, mode, simple_case) -> None
 
 
 @pytest.mark.parametrize("mode", list(mod_input.RTExecutionMode))
-def test_tape7_sli_binary_match(modtran_exec, tmp_path, mode, simple_case) -> None:
+def test_tape7_sli_binary_match(
+    modtran_exec, tmp_path, mode, simple_case, helpers
+) -> None:
     if mode in (
         mod_input.RTExecutionMode.RT_SOLAR_IRRADIANCE,
         mod_input.RTExecutionMode.RT_LUNAR_IRRADIANCE,
@@ -155,12 +154,7 @@ def test_tape7_sli_binary_match(modtran_exec, tmp_path, mode, simple_case) -> No
         .finish_case()
         .build_json_input(output_legacy=True, binary=True, output_sli=True)
     )
-    result = modtran_exec.run(input_json, work_dir=tmp_path)
-    assert result.process.returncode == 0
-    assert "Error" not in result.process.stdout
-
-    case_files: pymod6.output.CaseResultFilesNavigator
-    [case_files] = result.cases_output_files
+    case_files = helpers.run_single_checked(modtran_exec, input_json, tmp_path)
 
     # Read SLI spectral library formatted outputs.
     sli_data = pymod6.io.read_sli(case_files.sli_header)
