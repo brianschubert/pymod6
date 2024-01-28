@@ -16,6 +16,29 @@ Install from local source tree:
 $ pip install .
 ```
 
+# Documentation
+
+Build local HTML documentation:
+```shell
+$ cd docs
+$ make html
+
+# Open in browser (Linux) 
+$ xdg-open ./html/index.html
+
+# Open in browser (MacOS)
+$ open ./html/index.html
+
+# Open in browser (Windows)
+> Invoke-Item .\html\index.html
+```
+Browse HTML documentation in local web server:
+```shell
+$ cd docs
+$ make server
+```
+
+
 # Tests
 Tests can be run using pytest:
 
