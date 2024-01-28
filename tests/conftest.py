@@ -12,9 +12,19 @@ from pymod6 import input as mod_input
 @pytest.fixture(scope="session")
 def modtran_env() -> pymod6.ModtranEnv:
     try:
-        return pymod6.ModtranEnv.from_environ()
+        env = pymod6.ModtranEnv.from_environ()
     except ValueError as ex:
-        pytest.skip(f"unable to detecte MODTRAN environment: {ex}")
+        pytest.skip(f"unable to detect MODTRAN environment: {ex}")
+
+    if not env.exe.is_file():
+        pytest.fail(f"MODTRAN executable does not exist or is not a file: {env.exe}")
+
+    if not env.data.is_dir():
+        pytest.fail(
+            f"MODTRAN DATA directory does not exist or is not a directory: {env.exe}"
+        )
+
+    return env
 
 
 @pytest.fixture(scope="session")
@@ -23,12 +33,12 @@ def modtran_exec(modtran_env) -> pymod6.ModtranExecutable:
 
     # Check license is active.
     if not (status := mod_exec.license_status()).startswith("STAT_VALID"):
-        pytest.skip(f"MODTRAN license not active: {status}")
+        pytest.fail(f"MODTRAN license not active: {status}")
 
     # Check version is compatible.
     version = mod_exec.version().split()[-1]
     if version.split(".")[0] != "6":
-        pytest.skip(f"invalid MODTRAN version, expected version 6.*, found {version}")
+        pytest.fail(f"invalid MODTRAN version, expected version 6.*, found {version}")
 
     return mod_exec
 
