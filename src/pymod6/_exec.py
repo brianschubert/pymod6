@@ -22,6 +22,7 @@ _PathLike: TypeAlias = Union[str, os.PathLike[str]]
 
 
 class _ModtranResult(NamedTuple):
+class ModtranResult(NamedTuple):
     process: subprocess.CompletedProcess[str]
     cases_output_files: ModtranOutputFiles
 
