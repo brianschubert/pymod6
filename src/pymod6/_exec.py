@@ -16,7 +16,7 @@ from pymod6 import ModtranEnv
 from pymod6.input import JSONInput
 
 from . import _util
-from .output._nav import ModtranOutputFiles
+from .output import ModtranOutputFiles
 
 _PathLike: TypeAlias = Union[str, os.PathLike[str]]
 

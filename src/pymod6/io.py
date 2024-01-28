@@ -1,20 +1,25 @@
 """
-Output file I/O.
+I/O for input and output files.
 """
 
 from __future__ import annotations
 
 import contextlib
+import json
 import pathlib
+import re
 import struct
 from typing import Any, BinaryIO, ContextManager, Final, Literal, TextIO, cast, overload
 
 import numpy as np
+import pydantic
 import spectral.io.envi  # type: ignore[import-untyped]
 import xarray as xr
 from numpy import typing as npt
 
-from pymod6 import _util, input
+from . import _util
+from ._env import ModtranEnv
+from .input import _json
 
 _AtmoCorrectDataDType: Final = np.dtype(
     [
@@ -158,6 +163,11 @@ _Tape7RadianceThermalOnlyFileDType: Final = np.dtype(
 _Tape7HeaderLength: Final = 0x6F
 
 
+_COMMENT_PATTERN: Final = re.compile(
+    r'#(?:[^\n"]*(!<\\)"[^\n"]*(!<\\)")*[^\n"]*$', flags=re.MULTILINE
+)
+
+
 def read_acd_text(
     file: pathlib.Path | TextIO, *, dtype: npt.DTypeLike = _AtmoCorrectDataDType
 ) -> np.ndarray[Any, Any]:
@@ -186,7 +196,7 @@ def read_acd_binary(
     file: str | pathlib.Path | BinaryIO,
     *,
     return_algorithm: Literal[True],
-) -> tuple[np.ndarray[Any, Any], input.RTAlgorithm]:
+) -> tuple[np.ndarray[Any, Any], _json.RTAlgorithm]:
     ...
 
 
@@ -201,7 +211,7 @@ def read_acd_binary(
     file: str | pathlib.Path | BinaryIO,
     *,
     return_algorithm: bool = False,
-) -> np.ndarray[Any, Any] | tuple[np.ndarray[Any, Any], input.RTAlgorithm]:
+) -> np.ndarray[Any, Any] | tuple[np.ndarray[Any, Any], _json.RTAlgorithm]:
     """
     Read binary atmospheric correction data file.
 
@@ -276,10 +286,10 @@ def read_acd_binary(
 
     if return_algorithm:
         algo_lookup = {
-            1: input.RTAlgorithm.RT_MODTRAN,  # or RT_MODTRAN_POLAR
-            17: input.RTAlgorithm.RT_CORRK_FAST,
-            33: input.RTAlgorithm.RT_CORRK_SLOW,
-            100: input.RTAlgorithm.RT_LINE_BY_LINE,
+            1: _json.RTAlgorithm.RT_MODTRAN,  # or RT_MODTRAN_POLAR
+            17: _json.RTAlgorithm.RT_CORRK_FAST,
+            33: _json.RTAlgorithm.RT_CORRK_SLOW,
+            100: _json.RTAlgorithm.RT_LINE_BY_LINE,
         }
         return data, algo_lookup[k_int]
 
@@ -344,3 +354,56 @@ def read_tape7_binary(
         )
 
     return data
+
+
+def read_json_input(
+    s: str, strip_comments: bool = True, validate: bool = True
+) -> _json.JSONInput:
+    if strip_comments:
+        input_dict = json.loads(
+            s, cls=_CommentedJSONDecoder, comment_pattern=_COMMENT_PATTERN
+        )
+    else:
+        input_dict = json.loads(s)
+
+    if validate:
+        return pydantic.TypeAdapter(_json.JSONInput).validate_python(input_dict)
+
+    return input_dict  # type: ignore
+
+
+def load_input_defaults(mod_data: pathlib.Path | None = None) -> ModtranInput:
+    if mod_data is None:
+        mod_data = ModtranEnv.from_environ().data
+
+    with mod_data.joinpath("keywords.json").open("r") as fd:
+        raw_dict: dict[str, Any] = json.load(fd)["VALID_MODTRAN"]["MODTRANINPUT"]
+
+    def _marshal_inner(value: dict[str, Any]) -> Any:
+        if not isinstance(value, dict):
+            return value
+
+        if "ENUM" in value:
+            return value["ENUM"]
+
+        if "DEFAULT" in value:
+            return value["DEFAULT"]
+
+        return {k: _marshal_inner(v) for k, v in value.items()}
+
+    for key, val in raw_dict.items():
+        raw_dict[key] = _marshal_inner(val)
+
+    return pydantic.TypeAdapter(_json.ModtranInput).validate_python(raw_dict)
+
+
+class _CommentedJSONDecoder(json.JSONDecoder):
+    _comment_pattern: re.Pattern[str]
+
+    def __init__(self, comment_pattern: str | re.Pattern[str], **kwargs: Any) -> None:
+        self._comment_pattern = re.compile(comment_pattern)
+        super().__init__(**kwargs)
+
+    # noinspection PyMethodOverriding
+    def decode(self, s: str) -> Any:  # type: ignore[override]
+        return super().decode(self._comment_pattern.sub("", s))

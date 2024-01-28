@@ -1,6 +1,9 @@
 """
-Navigating output file placement in the filesystem.
+Output file handling.
+
+Utilities for navigating output file placement in the filesystem.
 """
+
 
 from __future__ import annotations
 

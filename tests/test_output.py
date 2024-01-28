@@ -5,8 +5,8 @@ import pytest
 
 import pymod6._exec
 import pymod6.input as mod_input
-import pymod6.output as mod_output
-import pymod6.output._nav
+import pymod6.io
+import pymod6.output
 
 
 @pytest.fixture(scope="session")
@@ -25,7 +25,7 @@ def test_files_exist_legacy_text(modtran_exec, tmp_path, simple_case) -> None:
         .build_json_input(output_legacy=True, json_opt=mod_input.JSONPrintOpt.WRT_NONE)
     )
 
-    case_files: pymod6.output._nav.CaseResultFilesNavigator
+    case_files: pymod6.output.CaseResultFilesNavigator
     result_proc, [case_files] = modtran_exec.run(input_json, work_dir=tmp_path)
 
     assert result_proc.returncode == 0
@@ -53,7 +53,7 @@ def test_files_exist_legacy_binary(modtran_exec, tmp_path, simple_case) -> None:
         )
     )
 
-    case_files: pymod6.output._nav.CaseResultFilesNavigator
+    case_files: pymod6.output.CaseResultFilesNavigator
     result_proc, [case_files] = modtran_exec.run(input_json, work_dir=tmp_path)
 
     assert result_proc.returncode == 0
@@ -80,7 +80,7 @@ def test_files_exist_sli(modtran_exec, tmp_path, simple_case) -> None:
         .build_json_input(output_sli=True, json_opt=mod_input.JSONPrintOpt.WRT_NONE)
     )
 
-    case_files: pymod6.output._nav.CaseResultFilesNavigator
+    case_files: pymod6.output.CaseResultFilesNavigator
     result_proc, [case_files] = modtran_exec.run(input_json, work_dir=tmp_path)
 
     assert result_proc.returncode == 0
@@ -102,7 +102,7 @@ def test_files_exist_csv(modtran_exec, tmp_path, simple_case) -> None:
         .build_json_input(output_csv=True, json_opt=mod_input.JSONPrintOpt.WRT_NONE)
     )
 
-    case_files: pymod6.output._nav.CaseResultFilesNavigator
+    case_files: pymod6.output.CaseResultFilesNavigator
     result_proc, [case_files] = modtran_exec.run(input_json, work_dir=tmp_path)
 
     assert result_proc.returncode == 0
@@ -122,7 +122,7 @@ def test_files_exist_json(modtran_exec, tmp_path, json_opt, simple_case) -> None
         .build_json_input(json_opt=json_opt)
     )
 
-    case_files: pymod6.output._nav.CaseResultFilesNavigator
+    case_files: pymod6.output.CaseResultFilesNavigator
     result_proc, [case_files] = modtran_exec.run(input_json, work_dir=tmp_path)
 
     assert result_proc.returncode == 0
@@ -135,7 +135,7 @@ def test_files_exist_json(modtran_exec, tmp_path, json_opt, simple_case) -> None
     else:
         assert output_files == ["case0.json"]
 
-        output_json = mod_input.read_json_input(case_files.json.read_text())
+        output_json = pymod6.io.read_json_input(case_files.json.read_text())
         [case] = output_json["MODTRAN"]
 
         assert (
@@ -164,13 +164,13 @@ def test_acd_text_binary_match(modtran_exec, tmp_path, algo, simple_case) -> Non
         .build_json_input(output_legacy=True, binary=True)
     )
 
-    acd_text = pymod6.output.read_acd_text(
+    acd_text = pymod6.io.read_acd_text(
         modtran_exec.run(input_acd_text, work_dir=tmp_path)
         .cases_output_files[0]
         .acd_text,
     )
 
-    acd_binary = pymod6.output.read_acd_binary(
+    acd_binary = pymod6.io.read_acd_binary(
         modtran_exec.run(input_acd_binary, work_dir=tmp_path)
         .cases_output_files[0]
         .acd_binary
@@ -205,14 +205,14 @@ def test_tape7_sli_json_match(modtran_exec, tmp_path, mode, simple_case) -> None
     assert result.process.returncode == 0
     assert "Error" not in result.process.stdout
 
-    case_files: pymod6.output._nav.CaseResultFilesNavigator
+    case_files: pymod6.output.CaseResultFilesNavigator
     [case_files] = result.cases_output_files
 
     # Read SLI spectral library formatted outputs.
-    sli_data = mod_output.read_sli(case_files.sli_header)
+    sli_data = pymod6.io.read_sli(case_files.sli_header)
 
     # Read JSON formatted outputs.
-    json_case = mod_input.read_json_input(case_files.json.read_text())["MODTRAN"][0]
+    json_case = pymod6.io.read_json_input(case_files.json.read_text())["MODTRAN"][0]
     json_data = json_case["MODTRANOUTPUT"]["SPECTRA"][mode.spectral_output_keyword]
 
     # Mapping between SLI spectra names and their corresponding JSON output keywords.
@@ -302,21 +302,21 @@ def test_tape7_sli_binary_match(modtran_exec, tmp_path, mode, simple_case) -> No
     assert result.process.returncode == 0
     assert "Error" not in result.process.stdout
 
-    case_files: pymod6.output._nav.CaseResultFilesNavigator
+    case_files: pymod6.output.CaseResultFilesNavigator
     [case_files] = result.cases_output_files
 
     # Read SLI spectral library formatted outputs.
-    sli_data = mod_output.read_sli(case_files.sli_header)
+    sli_data = pymod6.io.read_sli(case_files.sli_header)
 
     # Read binary tape7 spectral outputs.
-    binary_data = mod_output.read_tape7_binary(case_files.tape7_binary)
+    binary_data = pymod6.io.read_tape7_binary(case_files.tape7_binary)
 
     for field_name in binary_data.dtype.names:
         if (
             mode == mod_input.RTExecutionMode.RT_TRANSMITTANCE
             and field_name == "-log combin"
         ):
-            # Only present in .tp7 text and binary files. Not included in .csv or SLI outputsl.
+            # Only present in .tp7 text and binary files. Not included in .csv, SLI, or JSON outputs.
             continue
 
         if field_name == "freq":

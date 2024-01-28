@@ -32,8 +32,6 @@ from ._json import (
     SurfaceLambertianModel,
     SurfaceParam,
     SurfaceType,
-    load_input_defaults,
-    read_json_input,
 )
 
 __all__ = [
@@ -66,7 +64,5 @@ __all__ = [
     "SurfaceLambertianModel",
     "SurfaceParam",
     "SurfaceType",
-    "load_input_defaults",
-    "read_json_input",
     "basecases",
 ]

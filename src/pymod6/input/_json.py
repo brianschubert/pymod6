@@ -5,20 +5,10 @@ Input JSON file handling.
 from __future__ import annotations
 
 import enum
-import json
-import pathlib
-import re
-from typing import Any, Final, Literal, Union
+from typing import Any, Literal, Union
 
-import pydantic
 from pydantic import ConfigDict
 from typing_extensions import TypedDict
-
-from pymod6._env import ModtranEnv
-
-_COMMENT_PATTERN: Final = re.compile(
-    r'#(?:[^\n"]*(!<\\)"[^\n"]*(!<\\)")*[^\n"]*$', flags=re.MULTILINE
-)
 
 
 # Inherit from str so that the 'json' module can  serialize it.
@@ -600,56 +590,3 @@ class JSONInput(TypedDict, total=True):
 
 
 JSONInput.__pydantic_config__ = ConfigDict(extra="forbid")  # type: ignore[attr-defined]
-
-
-class _CommentedJSONDecoder(json.JSONDecoder):
-    _comment_pattern: re.Pattern[str]
-
-    def __init__(self, comment_pattern: str | re.Pattern[str], **kwargs: Any) -> None:
-        self._comment_pattern = re.compile(comment_pattern)
-        super().__init__(**kwargs)
-
-    # noinspection PyMethodOverriding
-    def decode(self, s: str) -> Any:  # type: ignore[override]
-        return super().decode(self._comment_pattern.sub("", s))
-
-
-def read_json_input(
-    s: str, strip_comments: bool = True, validate: bool = True
-) -> JSONInput:
-    if strip_comments:
-        input_dict = json.loads(
-            s, cls=_CommentedJSONDecoder, comment_pattern=_COMMENT_PATTERN
-        )
-    else:
-        input_dict = json.loads(s)
-
-    if validate:
-        return pydantic.TypeAdapter(JSONInput).validate_python(input_dict)
-
-    return input_dict  # type: ignore
-
-
-def load_input_defaults(mod_data: pathlib.Path | None = None) -> ModtranInput:
-    if mod_data is None:
-        mod_data = ModtranEnv.from_environ().data
-
-    with mod_data.joinpath("keywords.json").open("r") as fd:
-        raw_dict: dict[str, Any] = json.load(fd)["VALID_MODTRAN"]["MODTRANINPUT"]
-
-    def _marshal_inner(value: dict[str, Any]) -> Any:
-        if not isinstance(value, dict):
-            return value
-
-        if "ENUM" in value:
-            return value["ENUM"]
-
-        if "DEFAULT" in value:
-            return value["DEFAULT"]
-
-        return {k: _marshal_inner(v) for k, v in value.items()}
-
-    for key, val in raw_dict.items():
-        raw_dict[key] = _marshal_inner(val)
-
-    return pydantic.TypeAdapter(ModtranInput).validate_python(raw_dict)
