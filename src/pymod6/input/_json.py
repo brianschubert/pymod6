@@ -21,6 +21,8 @@ class _StrEnum(str, enum.Enum):
 
 @enum.unique
 class RTExecutionMode(_StrEnum):
+    """Options for RTOptions.IEMSCT"""
+
     RT_TRANSMITTANCE = "RT_TRANSMITTANCE"
     RT_THERMAL_ONLY = "RT_THERMAL_ONLY"
     RT_SOLAR_AND_THERMAL = "RT_SOLAR_AND_THERMAL"
@@ -41,6 +43,8 @@ class RTExecutionMode(_StrEnum):
 
 @enum.unique
 class RTAlgorithm(_StrEnum):
+    """Options for `RTOptions.MODTRN`."""
+
     RT_MODTRAN = "RT_MODTRAN"
     RT_CORRK_SLOW = "RT_CORRK_SLOW"
     RT_CORRK_FAST = "RT_CORRK_FAST"
@@ -50,6 +54,8 @@ class RTAlgorithm(_StrEnum):
 
 @enum.unique
 class RTMultipleScattering(_StrEnum):
+    """Options for `RTOPTIONS.IMULT`."""
+
     RT_NO_MULTIPLE_SCATTER = "RT_NO_MULTIPLE_SCATTER"
     RT_DISORT = "RT_DISORT"
     RT_DISORT_AT_OBS = "RT_DISORT_AT_OBS"
@@ -61,6 +67,8 @@ class RTMultipleScattering(_StrEnum):
 
 @enum.unique
 class AtmosphereModel(_StrEnum):
+    """Options for `Atmosphere.MODEL`."""
+
     ATM_CONSTANT = "ATM_CONSTANT"
     ATM_TROPICAL = "ATM_TROPICAL"
     ATM_MIDLAT_SUMMER = "ATM_MIDLAT_SUMMER"
@@ -74,6 +82,8 @@ class AtmosphereModel(_StrEnum):
 
 @enum.unique
 class AtmosphereProfileType(_StrEnum):
+    """Options for `AtmosphereProfile.TYPE`."""
+
     PROF_UNKNOWN = "PROF_UNKNOWN"
 
     PROF_USER_DEF = "PROF_USER_DEF"
@@ -170,6 +180,8 @@ class AtmosphereProfileType(_StrEnum):
 
 @enum.unique
 class AtmosphereProfileUnits(_StrEnum):
+    """Options for `AtmosphereProfile.UNITS`."""
+
     UNT_UNKNOWN = "UNT_UNKNOWN"
     UNT_KILOMETERS = "UNT_KILOMETERS"
     UNT_TKELVIN = "UNT_TKELVIN"
@@ -188,6 +200,8 @@ class AtmosphereProfileUnits(_StrEnum):
 
 @enum.unique
 class AerosolHaze(_StrEnum):
+    """Options for `Aerosol.IHAZE`."""
+
     AER_NONE = "AER_NONE"
     AER_RURAL = "AER_RURAL"
     AER_RURAL_DENSE = "AER_RURAL_DENSE"
@@ -203,6 +217,8 @@ class AerosolHaze(_StrEnum):
 
 @enum.unique
 class AerosolSeason(_StrEnum):
+    """Options for `Aerosol.ISEASN`."""
+
     SEASN_AUTO = "SEASN_AUTO"
     SEASN_SPRING_SUMMER = "SEASN_SPRING_SUMMER"
     SEASN_FALL_WINTER = "SEASN_FALL_WINTER"
@@ -210,6 +226,8 @@ class AerosolSeason(_StrEnum):
 
 @enum.unique
 class AerosolStratospheric(_StrEnum):
+    """Options for `Aerosol.VULCN`."""
+
     STRATO_BACKGROUND = "STRATO_BACKGROUND"
     STRATO_MODERATE_VOLCANIC_AGED = "STRATO_MODERATE_VOLCANIC_AGED"
     STRATO_HIGH_VOLCANIC_FRESH = "STRATO_HIGH_VOLCANIC_FRESH"
@@ -222,6 +240,8 @@ class AerosolStratospheric(_StrEnum):
 
 @enum.unique
 class AerosolCloud(_StrEnum):
+    """Options for `Aerosol.ICLD`."""
+
     CLOUD_NONE = "CLOUD_NONE"
     CLOUD_CUMULUS = "CLOUD_CUMULUS"
     CLOUD_ALTOSTRATUS = "CLOUD_ALTOSTRATUS"
@@ -240,6 +260,8 @@ class AerosolCloud(_StrEnum):
 
 @enum.unique
 class SurfaceType(_StrEnum):
+    """Options for `Surface.SURFTYPE`."""
+
     REFL_CONSTANT = "REFL_CONSTANT"
     REFL_LAMBER_MODEL = "REFL_LAMBER_MODEL"
     REFL_RBDF = "REFL_RBDF"
@@ -247,6 +269,8 @@ class SurfaceType(_StrEnum):
 
 @enum.unique
 class SurfaceBRDFModel(_StrEnum):
+    """Options for `SurfaceParam.CBRDF`."""
+
     BRDF_WALTHALL = "BRDF_WALTHALL"
     BRDF_WALTHALL_ANALYTIC = "BRDF_WALTHALL_ANALYTIC"
     BRDF_WALTHALL_SINE = "BRDF_WALTHALL_SINE"
@@ -261,6 +285,8 @@ class SurfaceBRDFModel(_StrEnum):
 
 @enum.unique
 class SurfaceLambertianModel(_StrEnum):
+    """Options for `SurfaceParam.CSALB`."""
+
     LAMB_MODEL_USER_DEF = "LAMB_MODEL_USER_DEF"
     LAMB_SNOW_COVER = "LAMB_SNOW_COVER"
     LAMB_FOREST = "LAMB_FOREST"
@@ -318,6 +344,8 @@ class SurfaceLambertianModel(_StrEnum):
 
 @enum.unique
 class JSONPrintOpt(enum.IntFlag):
+    """Options for `FileOptions.JSONPRNT`."""
+
     WRT_NONE = 0
     WRT_STATUS = 1
     WRT_INPUT = 2
@@ -329,6 +357,8 @@ class JSONPrintOpt(enum.IntFlag):
 
 
 class RTOptions(TypedDict, total=False):
+    """Settings for `ModtranInput.RTOPTIONS`."""
+
     IEMSCT: RTExecutionMode
     MODTRN: RTAlgorithm
     LYMOLC: bool
@@ -341,6 +371,8 @@ class RTOptions(TypedDict, total=False):
 
 
 class Atmosphere(TypedDict, total=False):
+    """Settings for `ModtranInput.ATMOSPHERE`."""
+
     MODEL: AtmosphereModel
     M1: AtmosphereModel
     M2: AtmosphereModel
@@ -373,6 +405,8 @@ class Atmosphere(TypedDict, total=False):
 
 
 class AtmosphereProfile(TypedDict, total=False):
+    """Settings for `Atmosphere.ATMPROFILE`."""
+
     TYPE: AtmosphereProfileType
     UNITS: AtmosphereProfileUnits
     UNAME: str
@@ -381,6 +415,8 @@ class AtmosphereProfile(TypedDict, total=False):
 
 
 class Aerosol(TypedDict, total=False):
+    """Settings for `ModtranInput.AEROSOL`."""
+
     IHAZE: AerosolHaze
     VIS: float
     WSS: float
@@ -432,6 +468,8 @@ class Aerosol(TypedDict, total=False):
 
 
 class Geometry(TypedDict, total=False):
+    """Settings for `ModtranInput.GEOMETRY`."""
+
     ITYPE: Literal[1, 2, 3, 4]
     H1ALT: float
     H2ALT: float
@@ -467,6 +505,8 @@ class Geometry(TypedDict, total=False):
 
 
 class Surface(TypedDict, total=False):
+    """Settings for `ModtranInput.SURFACE`."""
+
     SURFTYPE: SurfaceType
     SURREF: float
     NSURF: Literal[1, 2]
@@ -485,6 +525,8 @@ class Surface(TypedDict, total=False):
 
 
 class SurfaceParam(TypedDict, total=False):
+    """Settings for `Surface.SURFACEPARAM`."""
+
     CBRDF: SurfaceBRDFModel
     SALBSTR: str
     SURFZN: float  # can only be zero, but Literal[0.0] is not supported
@@ -503,6 +545,8 @@ class SurfaceParam(TypedDict, total=False):
 
 
 class Spectral(TypedDict, total=False):
+    """Settings for `ModtranInput.SPECTRAL`."""
+
     V1: float
     V2: float
     DV: float
@@ -523,6 +567,8 @@ class Spectral(TypedDict, total=False):
 
 
 class FileOptions(TypedDict, total=False):
+    """Settings for `ModtranInput.FILEOPTIONS`."""
+
     NOFILE: Literal[0, 1, 2, "FC_ALLOWALL", "FC_TAPE6ONLY", "FC_NOFILES"]
     BINARY: bool
     CKPRNT: bool
@@ -568,11 +614,13 @@ ModtranInput = TypedDict(
     },
     total=False,
 )
-
+ModtranInput.__doc__ = """Settings for `Case.MODTRANINPUT`."""
 ModtranInput.__pydantic_config__ = ConfigDict(extra="forbid")  # type: ignore[attr-defined]
 
 
 class ModtranStatus(TypedDict, total=False):
+    """Settings for `Case.MODTRANSTATUS`."""
+
     VERSION: str
     NAME: str
     CASE_STATUS: str
@@ -580,12 +628,16 @@ class ModtranStatus(TypedDict, total=False):
 
 
 class Case(TypedDict, total=False):
+    """Entries in `JSONInput.MODTRAN`."""
+
     MODTRANINPUT: ModtranInput
     MODTRANSTATUS: ModtranStatus
     MODTRANOUTPUT: object
 
 
 class JSONInput(TypedDict, total=True):
+    """Complete MODTRAN JSON input file structure."""
+
     MODTRAN: list[Case]
 
 

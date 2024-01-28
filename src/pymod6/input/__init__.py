@@ -35,34 +35,42 @@ from ._json import (
 )
 
 __all__ = [
-    "CaseHandle",
+    "basecases",
+    # Builder
     "ModtranInputBuilder",
-    "Aerosol",
-    "AerosolCloud",
-    "AerosolHaze",
-    "AerosolSeason",
-    "AerosolStratospheric",
+    "CaseHandle",
+    # JSON input
+    "JSONInput",
+    "Case",
+    "ModtranInput",
+    "ModtranStatus",
+    # MODTRANINPUT
+    "RTOptions",
     "Atmosphere",
+    "Aerosol",
+    "Geometry",
+    "Surface",
+    "Spectral",
+    "FileOptions",
+    # RTOPTIONS
+    "RTAlgorithm",
+    "RTExecutionMode",
+    "RTMultipleScattering",
+    # ATMOSPHERE
     "AtmosphereModel",
     "AtmosphereProfile",
     "AtmosphereProfileType",
     "AtmosphereProfileUnits",
-    "Case",
-    "FileOptions",
-    "Geometry",
-    "JSONInput",
-    "JSONPrintOpt",
-    "ModtranInput",
-    "ModtranStatus",
-    "RTAlgorithm",
-    "RTExecutionMode",
-    "RTMultipleScattering",
-    "RTOptions",
-    "Spectral",
-    "Surface",
+    # AEROSOL
+    "AerosolCloud",
+    "AerosolHaze",
+    "AerosolSeason",
+    "AerosolStratospheric",
+    # SURFACE
     "SurfaceBRDFModel",
     "SurfaceLambertianModel",
     "SurfaceParam",
     "SurfaceType",
-    "basecases",
+    # FILEOPTIONS
+    "JSONPrintOpt",
 ]
