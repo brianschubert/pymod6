@@ -11,4 +11,4 @@ DISTRIBUTION_NAME: Final[str] = "pymod6"
 
 __version__ = importlib.metadata.version(DISTRIBUTION_NAME)
 
-__all__ = ["ModtranEnv", "ModtranExecutable"]
+__all__ = ["ModtranEnv", "ModtranExecutable", "input", "output", "unit"]

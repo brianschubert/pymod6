@@ -1,3 +1,7 @@
+"""
+Input file construction and handling.
+"""
+
 from . import basecases
 from ._builder import CaseHandle, ModtranInputBuilder
 from ._json import (
@@ -64,4 +68,5 @@ __all__ = [
     "SurfaceType",
     "load_input_defaults",
     "read_json_input",
+    "basecases",
 ]
