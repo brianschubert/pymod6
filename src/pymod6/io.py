@@ -190,8 +190,8 @@ def read_acd_text(
     file : path or file-like
         File name or file-like object to read.
     dtype : optional
-         Desired datatype. Defaults to `AtmoCorrectDataDType`, resulting in a structured array output.
-     Set to `"f4"` for homogenous float outputs.
+        Desired datatype. Defaults to `AtmoCorrectDataDType`, resulting in a structured array output.
+        Set to `"f4"` for homogenous float outputs.
 
     Returns
     -------

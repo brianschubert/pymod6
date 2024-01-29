@@ -11,10 +11,12 @@ import pathlib
 from dataclasses import dataclass
 from typing import Sequence, overload
 
+from typing_extensions import Self
+
+import pymod6.io
 from pymod6.input import _json
 
 
-@dataclass
 class ModtranOutputFiles(Sequence["CaseResultFilesNavigator"]):
     """
     Collection of output files from a MODTRAN run, organized by case.
@@ -22,10 +24,80 @@ class ModtranOutputFiles(Sequence["CaseResultFilesNavigator"]):
     Output file paths are resolved lazily.
     """
 
-    input: _json.JSONInput
-    work_dir: pathlib.Path
+    input_json: _json.JSONInput
+    """
+    JSON input file used to generate these outputs.
+    """
 
-    # TODO: interface for collecting output files "post mortem" / directly from disk.
+    work_dir: pathlib.Path
+    """
+    Base directory for output files.
+    """
+
+    def __init__(
+        self, input_json: _json.JSONInput, work_dir: str | pathlib.Path
+    ) -> None:
+        self.input_json = input_json
+        self.work_dir = pathlib.Path(work_dir)
+
+    @classmethod
+    def load_directory(
+        cls, directory: str | pathlib.Path, validate_json: bool = True
+    ) -> Self:
+        """
+        Load directory of case outputs.
+
+        Each case *MUST* have a distinct associated `.json` file in the directory.
+
+        Parameters
+        ----------
+        directory : path-like
+            Directory containing output files.
+
+        validate_json : bool, optional
+            Whether to validate the JSON files against the expected schema. Defaults to `True`.
+            Set to `False` if for whatever reason the expected schema deviates from the file
+            contents, and you still wish to attempt to load the JSON files.
+
+        Returns
+        -------
+        Self
+            Case output file collection for the given directory. Cases will be ordered
+            lexicographically by corresponding JSON file name.
+        """
+        # TODO: support for single JSON file with all cases
+
+        directory = pathlib.Path(directory)
+        json_files = sorted(f for f in directory.iterdir() if f.suffix == ".json")
+
+        cases: list[_json.Case] = []
+        for case_json in json_files:
+            try:
+                case_input_dict = pymod6.io.read_json_input(
+                    case_json.read_text(), validate=validate_json
+                )
+            except ValueError as ex:
+                raise ValueError(f"failed to load output JSON: {case_json}") from ex
+
+            try:
+                [single_case] = case_input_dict["MODTRAN"]
+            except ValueError:
+                raise ValueError(
+                    f"expected 1 case, found {len(case_input_dict['MODTRAN'])}: {case_json}"
+                )
+
+            if "MODTRANINPUT" not in single_case:
+                raise ValueError(f"missing MODTRANINPUT: {case_json}")
+
+            cases.append(single_case)
+
+        return cls({"MODTRAN": cases}, directory)
+
+    def __repr__(self) -> str:
+        return f"{self.__class__.__name__}(<{len(self)} cases from '{self.work_dir}'>)"
+
+    def __len__(self) -> int:
+        return len(self.input_json["MODTRAN"])
 
     # Sequence.__getitem__ overloads required by type checkers.
 
@@ -45,15 +117,12 @@ class ModtranOutputFiles(Sequence["CaseResultFilesNavigator"]):
             return [self[idx] for idx in range(*case_index.indices(len(self)))]
 
         # TODO: fallback to case listed in 'CASE TEMPLATE' on lookup fail?
-        case = self.input["MODTRAN"][case_index]
+        case = self.input_json["MODTRAN"][case_index]
         return CaseResultFilesNavigator(
             self.work_dir,
             case["MODTRANINPUT"]["FILEOPTIONS"],
             case["MODTRANINPUT"].get("NAME"),
         )
-
-    def __len__(self) -> int:
-        return len(self.input["MODTRAN"])
 
 
 @dataclass
@@ -202,6 +271,12 @@ class CaseResultFilesNavigator:
         return file_properties
 
     def _root_name(self) -> str:
+        # <ROOT NAME> = FILEOPTIONS.FLROOT if set (even if blank).
+        # If FILEOPTIONS.FLROOT is not set, NAME is used instead.
+        #
+        # If <ROOT NAME> is blank (meaning FILEOPTIONS.FLROOT or NAME is set per the above and contains only spaces),
+        # then default legacy filenames are used. If <ROOT NAME> is unset, (meaining neither FILEOPTIONS.FLROOT or NAME
+        # were set, then <ROOT NAME> = "mod6".
         try:
             return self.file_options["FLROOT"].strip()
         except KeyError:
@@ -236,13 +311,6 @@ class CaseResultFilesNavigator:
         """
         Resolve filename of legacy output file.
         """
-        # <ROOT NAME> = FILEOPTIONS.FLROOT if set (even if blank).
-        # If FILEOPTIONS.FLROOT is not set, NAME is used instead.
-        #
-        # If <ROOT NAME> is blank (meaning FILEOPTIONS.FLROOT or NAME is set per the above and contains only spaces),
-        # then default legacy filenames are used. If <ROOT NAME> is unset, (meaining neither FILEOPTIONS.FLROOT or NAME
-        # were set, then <ROOT NAME> = "mod6".
-
         if (root := self._root_name()) != "":
             name = f"{root}{tail}"
         else:
