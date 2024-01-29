@@ -206,7 +206,7 @@ def _path_or_default_work_dir(p: _PathLike | None) -> pathlib.Path:
         work_dir = (
             pathlib.Path.cwd()
             / "modtran_runs"
-            / f"run{datetime.datetime.now().isoformat(timespec='seconds')}"
+            / f"run_{datetime.datetime.now():%Y-%m-%dT%H-%M-%S}"
         )
         work_dir.mkdir(parents=True, exist_ok=False)
         return work_dir
