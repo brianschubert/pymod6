@@ -29,7 +29,7 @@ AtmoCorrectDataDType: Final = np.dtype(
         ("k_weight", "<f4"),
         ("sun_gnd_diffuse_transm", "<f4"),
         ("sun_gnd_obs_direct_transm", "<f4"),
-        ("obs_gdn_embedded_dif_transm", "<f4"),
+        ("obs_gnd_embedded_dif_transm", "<f4"),
         ("obs_gnd_direct_transm", "<f4"),
         ("spherical_albedo", "<f4"),
     ]
