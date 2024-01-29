@@ -70,6 +70,8 @@ class ModtranInputBuilder:
         outupt_corrk: bool = False,
         binary: bool = False,
         json_opt: JSONPrintOpt = JSONPrintOpt.WRT_STAT_INPUT,
+        unify_json: bool = False,
+        unify_csv: bool = False,
     ) -> JSONInput:
         case_digits = _util.num_digits(len(self._cases) - 1)
 
@@ -80,10 +82,14 @@ class ModtranInputBuilder:
                 timestamp=datetime.datetime.now(),
             )
 
+            case.setdefault("NAME", root_name)
+
             file_options: FileOptions = case.setdefault("FILEOPTIONS", {})
             file_options["FLROOT"] = root_name
 
-            file_options["JSONPRNT"] = f"{root_name}.json"
+            file_options["JSONPRNT"] = (
+                "all_cases.json" if unify_json else f"{root_name}.json"
+            )
             file_options["JSONOPT"] = json_opt
 
             file_options["NOFILE"] = 0 if output_legacy else 2
@@ -92,7 +98,9 @@ class ModtranInputBuilder:
                 file_options["SLIPRNT"] = root_name
 
             if output_csv:
-                file_options["CSVPRNT"] = f"{root_name}.csv"
+                file_options["CSVPRNT"] = (
+                    "all_cases.csv" if unify_csv else f"{root_name}.csv"
+                )
 
             file_options["BINARY"] = binary
             file_options["CKPRNT"] = outupt_corrk
