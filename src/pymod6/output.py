@@ -8,8 +8,9 @@ Utilities for navigating output file placement in the filesystem.
 from __future__ import annotations
 
 import pathlib
+from collections.abc import Sequence
 from dataclasses import dataclass
-from typing import Sequence, overload
+from typing import overload
 
 from typing_extensions import Self
 
@@ -47,7 +48,14 @@ class ModtranOutputFiles(Sequence["CaseResultFilesNavigator"]):
         """
         Load directory of case outputs.
 
-        Each case *MUST* have a distinct associated `.json` file in the directory.
+        The directory must either contain a single `.json` file with all case inputs,
+        or it must contain a separate `.json` file for each case. All cases must
+        include a `MODTRANINPUT` entry.
+
+        If the directory contains a single `.json` file, then the order of the loaded
+        cases will match the order of the cases in the JSON file. If the directory
+        contains multiple `.json` files, then the loaded cases will be ordered
+        lexicographically by corresponding JSON file name.
 
         Parameters
         ----------
@@ -62,15 +70,29 @@ class ModtranOutputFiles(Sequence["CaseResultFilesNavigator"]):
         Returns
         -------
         Self
-            Case output file collection for the given directory. Cases will be ordered
-            lexicographically by corresponding JSON file name.
+            Case output file collection for the given directory.
+
+        Examples
+        --------
+        ```python
+        work_dir = "some/work/directory"
+
+        mod_exec = pymod6.ModtranExecutable()
+        mod_exec.run(..., work_dir=work_dir)
+
+        # later...
+
+        output_files = ModtranOutputFiles.load_directory(work_dir)
+        ```
         """
-        # TODO: support for single JSON file with all cases
 
         directory = pathlib.Path(directory)
         json_files = sorted(f for f in directory.iterdir() if f.suffix == ".json")
 
-        cases: list[_json.Case] = []
+        if not json_files:
+            raise ValueError(f"directory contains no JSON files: '{directory}'")
+
+        all_cases: list[_json.Case] = []
         for case_json in json_files:
             try:
                 case_input_dict = pymod6.io.read_json_input(
@@ -79,19 +101,21 @@ class ModtranOutputFiles(Sequence["CaseResultFilesNavigator"]):
             except ValueError as ex:
                 raise ValueError(f"failed to load output JSON: {case_json}") from ex
 
-            try:
-                [single_case] = case_input_dict["MODTRAN"]
-            except ValueError:
+            if len(json_files) != 1 and len(case_input_dict["MODTRAN"]) != 1:
                 raise ValueError(
-                    f"expected 1 case, found {len(case_input_dict['MODTRAN'])}: {case_json}"
+                    f"directory contains multiple JSON files. Expected exactly 1 case per file,"
+                    f" but found {len(case_input_dict['MODTRAN'])} cases in '{case_json}'"
                 )
 
-            if "MODTRANINPUT" not in single_case:
-                raise ValueError(f"missing MODTRANINPUT: {case_json}")
+            for case_idx, case in enumerate(case_input_dict["MODTRAN"]):
+                if "MODTRANINPUT" not in case:
+                    raise ValueError(
+                        f"case {case_idx} missing MODTRANINPUT: {case_json}"
+                    )
 
-            cases.append(single_case)
+                all_cases.append(case)
 
-        return cls({"MODTRAN": cases}, directory)
+        return cls({"MODTRAN": all_cases}, directory)
 
     def __repr__(self) -> str:
         return f"{self.__class__.__name__}(<{len(self)} cases from '{self.work_dir}'>)"
