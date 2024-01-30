@@ -1,5 +1,5 @@
 """
-Input JSON file handling.
+JSON input file schema.
 """
 
 from __future__ import annotations
@@ -9,6 +9,43 @@ from typing import Any, Literal, Union
 
 from pydantic import ConfigDict
 from typing_extensions import TypedDict
+
+__all__ = [
+    # JSON input
+    "JSONInput",
+    "Case",
+    "ModtranInput",
+    "ModtranStatus",
+    # MODTRANINPUT
+    "RTOptions",
+    "Atmosphere",
+    "Aerosol",
+    "Geometry",
+    "Surface",
+    "Spectral",
+    "FileOptions",
+    # RTOPTIONS
+    "RTAlgorithm",
+    "RTExecutionMode",
+    "RTMultipleScattering",
+    # ATMOSPHERE
+    "AtmosphereModel",
+    "AtmosphereProfile",
+    "AtmosphereProfileType",
+    "AtmosphereProfileUnits",
+    # AEROSOL
+    "AerosolCloud",
+    "AerosolHaze",
+    "AerosolSeason",
+    "AerosolStratospheric",
+    # SURFACE
+    "SurfaceBRDFModel",
+    "SurfaceLambertianModel",
+    "SurfaceParam",
+    "SurfaceType",
+    # FILEOPTIONS
+    "JSONPrintOpt",
+]
 
 
 # Inherit from str so that the 'json' module can  serialize it.

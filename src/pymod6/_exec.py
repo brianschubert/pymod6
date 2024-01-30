@@ -13,7 +13,7 @@ from typing import NamedTuple, Union, cast
 from typing_extensions import TypeAlias
 
 from pymod6 import ModtranEnv
-from pymod6.input import JSONInput
+from pymod6.input.schema import JSONInput
 
 from . import _util
 from .output import ModtranOutputFiles

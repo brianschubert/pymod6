@@ -3,19 +3,19 @@ import pytest
 
 import pymod6.io
 import pymod6.output
-from pymod6 import input as mod_input
+from pymod6.input import schema as mod_schema
 
 
-@pytest.mark.parametrize("algo", list(mod_input.RTAlgorithm))
+@pytest.mark.parametrize("algo", list(mod_schema.RTAlgorithm))
 def test_acd_text_binary_match(modtran_exec, tmp_path, algo, simple_case) -> None:
     input_acd_text = (
-        mod_input.ModtranInputBuilder()
+        pymod6.input.ModtranInputBuilder()
         .add_case(simple_case, RTOPTIONS__MODTRN=algo)
         .finish_case()
         .build_json_input(output_legacy=True, binary=False)
     )
     input_acd_binary = (
-        mod_input.ModtranInputBuilder()
+        pymod6.input.ModtranInputBuilder()
         .add_case(simple_case, RTOPTIONS__MODTRN=algo)
         .finish_case()
         .build_json_input(output_legacy=True, binary=True)
@@ -39,25 +39,25 @@ def test_acd_text_binary_match(modtran_exec, tmp_path, algo, simple_case) -> Non
         )
 
 
-@pytest.mark.parametrize("mode", list(mod_input.RTExecutionMode))
+@pytest.mark.parametrize("mode", list(mod_schema.RTExecutionMode))
 def test_tape7_sli_json_match(
     modtran_exec, tmp_path, mode, simple_case, helpers
 ) -> None:
     if mode in (
-        mod_input.RTExecutionMode.RT_SOLAR_IRRADIANCE,
-        mod_input.RTExecutionMode.RT_LUNAR_IRRADIANCE,
+        mod_schema.RTExecutionMode.RT_SOLAR_IRRADIANCE,
+        mod_schema.RTExecutionMode.RT_LUNAR_IRRADIANCE,
     ):
         pytest.skip("irradiance mode not yet supported")
 
     input_json = (
-        mod_input.ModtranInputBuilder()
+        pymod6.input.ModtranInputBuilder()
         .add_case(
             simple_case,
             RTOPTIONS__IEMSCT=mode,
             # RTOPTIONS__IMULT=mod_input.RTMultipleScattering.RT_NO_MULTIPLE_SCATTER,
         )
         .finish_case()
-        .build_json_input(output_sli=True, json_opt=mod_input.JSONPrintOpt.WRT_OUTPUT)
+        .build_json_input(output_sli=True, json_opt=mod_schema.JSONPrintOpt.WRT_OUTPUT)
     )
 
     case_files = helpers.run_single_checked(modtran_exec, input_json, tmp_path)
@@ -134,18 +134,18 @@ def test_tape7_sli_json_match(
         )
 
 
-@pytest.mark.parametrize("mode", list(mod_input.RTExecutionMode))
+@pytest.mark.parametrize("mode", list(mod_schema.RTExecutionMode))
 def test_tape7_sli_binary_match(
     modtran_exec, tmp_path, mode, simple_case, helpers
 ) -> None:
     if mode in (
-        mod_input.RTExecutionMode.RT_SOLAR_IRRADIANCE,
-        mod_input.RTExecutionMode.RT_LUNAR_IRRADIANCE,
+        mod_schema.RTExecutionMode.RT_SOLAR_IRRADIANCE,
+        mod_schema.RTExecutionMode.RT_LUNAR_IRRADIANCE,
     ):
         pytest.skip("irradiance mode not yet supported")
 
     input_json = (
-        mod_input.ModtranInputBuilder()
+        pymod6.input.ModtranInputBuilder()
         .add_case(
             simple_case,
             RTOPTIONS__IEMSCT=mode,
@@ -164,7 +164,7 @@ def test_tape7_sli_binary_match(
 
     for field_name in binary_data.dtype.names:
         if (
-            mode == mod_input.RTExecutionMode.RT_TRANSMITTANCE
+            mode == mod_schema.RTExecutionMode.RT_TRANSMITTANCE
             and field_name == "-log combin"
         ):
             # Only present in .tp7 text and binary files. Not included in .csv, SLI, or JSON outputs.

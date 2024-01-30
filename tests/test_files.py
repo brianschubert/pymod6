@@ -9,7 +9,7 @@ import pathlib
 import pytest
 
 import pymod6
-import pymod6.input as mod_input
+import pymod6.input.schema as mod_schema
 import pymod6.io
 import pymod6.output
 
@@ -19,12 +19,12 @@ def use_corrk(request) -> bool:
     return request.param
 
 
-@pytest.mark.parametrize("json_opt", list(mod_input.JSONPrintOpt))
+@pytest.mark.parametrize("json_opt", list(mod_schema.JSONPrintOpt))
 def test_files_exist_json(
     modtran_exec, tmp_path, json_opt, simple_case, helpers
 ) -> None:
     input_json = (
-        mod_input.ModtranInputBuilder()
+        pymod6.input.ModtranInputBuilder()
         .add_case(simple_case)
         .finish_case()
         .build_json_input(json_opt=json_opt)
@@ -33,7 +33,7 @@ def test_files_exist_json(
     case_files = helpers.run_single_checked(modtran_exec, input_json, tmp_path)
     file_names = [f.name for f in case_files.all_files(only_existing=True)]
 
-    if json_opt == mod_input.JSONPrintOpt.WRT_NONE:
+    if json_opt == mod_schema.JSONPrintOpt.WRT_NONE:
         assert file_names == []
     else:
         assert file_names == ["case0.json"]
@@ -46,9 +46,9 @@ def test_files_exist_json(
             "MODTRANINPUT" in case,
             "MODTRANOUTPUT" in case,
         ) == (
-            mod_input.JSONPrintOpt.WRT_STATUS in json_opt,
-            mod_input.JSONPrintOpt.WRT_INPUT in json_opt,
-            mod_input.JSONPrintOpt.WRT_OUTPUT in json_opt,
+            mod_schema.JSONPrintOpt.WRT_STATUS in json_opt,
+            mod_schema.JSONPrintOpt.WRT_INPUT in json_opt,
+            mod_schema.JSONPrintOpt.WRT_OUTPUT in json_opt,
         )
 
 
@@ -57,17 +57,17 @@ def test_files_exist_legacy(
     modtran_exec, tmp_path, simple_case, binary, use_corrk, helpers
 ) -> None:
     input_json = (
-        mod_input.ModtranInputBuilder()
+        pymod6.input.ModtranInputBuilder()
         .add_case(
             simple_case,
-            RTOPTIONS__MODTRN=mod_input.RTAlgorithm.RT_CORRK_FAST,
+            RTOPTIONS__MODTRN=mod_schema.RTAlgorithm.RT_CORRK_FAST,
         )
         .finish_case()
         .build_json_input(
             output_legacy=True,
             binary=binary,
             outupt_corrk=use_corrk,
-            json_opt=mod_input.JSONPrintOpt.WRT_NONE,
+            json_opt=mod_schema.JSONPrintOpt.WRT_NONE,
         )
     )
 
@@ -111,16 +111,16 @@ def test_files_exist_sli(
     modtran_exec, tmp_path, simple_case, use_corrk, helpers
 ) -> None:
     input_json = (
-        mod_input.ModtranInputBuilder()
+        pymod6.input.ModtranInputBuilder()
         .add_case(
             simple_case,
-            RTOPTIONS__MODTRN=mod_input.RTAlgorithm.RT_CORRK_FAST,
+            RTOPTIONS__MODTRN=mod_schema.RTAlgorithm.RT_CORRK_FAST,
         )
         .finish_case()
         .build_json_input(
             output_sli=True,
             outupt_corrk=use_corrk,
-            json_opt=mod_input.JSONPrintOpt.WRT_NONE,
+            json_opt=mod_schema.JSONPrintOpt.WRT_NONE,
         )
     )
 
@@ -148,16 +148,16 @@ def test_files_exist_csv(
     modtran_exec, tmp_path, simple_case, use_corrk, helpers
 ) -> None:
     input_json = (
-        mod_input.ModtranInputBuilder()
+        pymod6.input.ModtranInputBuilder()
         .add_case(
             simple_case,
-            RTOPTIONS__MODTRN=mod_input.RTAlgorithm.RT_CORRK_FAST,
+            RTOPTIONS__MODTRN=mod_schema.RTAlgorithm.RT_CORRK_FAST,
         )
         .finish_case()
         .build_json_input(
             output_csv=True,
             outupt_corrk=use_corrk,
-            json_opt=mod_input.JSONPrintOpt.WRT_NONE,
+            json_opt=mod_schema.JSONPrintOpt.WRT_NONE,
         )
     )
 

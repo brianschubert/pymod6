@@ -15,7 +15,7 @@ from typing import overload
 from typing_extensions import Self
 
 import pymod6.io
-from pymod6.input import _json
+from pymod6.input import schema as _schema
 
 
 class ModtranOutputFiles(Sequence["CaseResultFilesNavigator"]):
@@ -25,7 +25,7 @@ class ModtranOutputFiles(Sequence["CaseResultFilesNavigator"]):
     Output file paths are resolved lazily.
     """
 
-    input_json: _json.JSONInput
+    input_json: _schema.JSONInput
     """
     JSON input file used to generate these outputs.
     """
@@ -36,7 +36,7 @@ class ModtranOutputFiles(Sequence["CaseResultFilesNavigator"]):
     """
 
     def __init__(
-        self, input_json: _json.JSONInput, work_dir: str | pathlib.Path
+        self, input_json: _schema.JSONInput, work_dir: str | pathlib.Path
     ) -> None:
         self.input_json = input_json
         self.work_dir = pathlib.Path(work_dir)
@@ -92,7 +92,7 @@ class ModtranOutputFiles(Sequence["CaseResultFilesNavigator"]):
         if not json_files:
             raise ValueError(f"directory contains no JSON files: '{directory}'")
 
-        all_cases: list[_json.Case] = []
+        all_cases: list[_schema.Case] = []
         for case_json in json_files:
             try:
                 case_input_dict = pymod6.io.read_json_input(
@@ -166,7 +166,7 @@ class CaseResultFilesNavigator:
     """
 
     work_dir: pathlib.Path
-    file_options: _json.FileOptions
+    file_options: _schema.FileOptions
     name: str | None
 
     @property

@@ -8,7 +8,7 @@ import pydantic
 from typing_extensions import Self, Unpack
 
 from .. import _util
-from ._json import FileOptions, JSONInput, JSONPrintOpt, ModtranInput
+from . import schema as _schema
 
 
 class ModtranInputBuilder:
@@ -20,7 +20,7 @@ class ModtranInputBuilder:
     - Ensuring consistent file options across all cases.
     """
 
-    _cases: list[ModtranInput]
+    _cases: list[_schema.ModtranInput]
 
     _root_name_format: str
 
@@ -38,10 +38,10 @@ class ModtranInputBuilder:
 
     def add_case(
         self,
-        case_input: ModtranInput,
+        case_input: _schema.ModtranInput,
         /,
         make_copy: bool = True,
-        **kwargs: Unpack[ModtranInput],
+        **kwargs: Unpack[_schema.ModtranInput],
     ) -> CaseHandle:
         if make_copy:
             case_input = copy.deepcopy(case_input)
@@ -53,7 +53,9 @@ class ModtranInputBuilder:
             _util.assign_nested_mapping(case_input, key.split("__"), value)  # type: ignore[arg-type]
 
         if self._validate:
-            case_input = pydantic.TypeAdapter(ModtranInput).validate_python(case_input)
+            case_input = pydantic.TypeAdapter(_schema.ModtranInput).validate_python(
+                case_input
+            )
 
         self._cases.append(case_input.copy())
         return CaseHandle(self, index)
@@ -69,10 +71,10 @@ class ModtranInputBuilder:
         output_csv: bool = False,
         outupt_corrk: bool = False,
         binary: bool = False,
-        json_opt: JSONPrintOpt = JSONPrintOpt.WRT_STAT_INPUT,
+        json_opt: _schema.JSONPrintOpt = _schema.JSONPrintOpt.WRT_STAT_INPUT,
         unify_json: bool = False,
         unify_csv: bool = False,
-    ) -> JSONInput:
+    ) -> _schema.JSONInput:
         case_digits = _util.num_digits(len(self._cases) - 1)
 
         for case in self._cases:
@@ -84,7 +86,7 @@ class ModtranInputBuilder:
 
             case.setdefault("NAME", root_name)
 
-            file_options: FileOptions = case.setdefault("FILEOPTIONS", {})
+            file_options: _schema.FileOptions = case.setdefault("FILEOPTIONS", {})
             file_options["FLROOT"] = root_name
 
             file_options["JSONPRNT"] = (
@@ -105,12 +107,12 @@ class ModtranInputBuilder:
             file_options["BINARY"] = binary
             file_options["CKPRNT"] = outupt_corrk
 
-        input_json: JSONInput = {
+        input_json: _schema.JSONInput = {
             "MODTRAN": [{"MODTRANINPUT": case} for case in self._cases]
         }
 
         if self._validate:
-            return pydantic.TypeAdapter(JSONInput).validate_python(input_json)
+            return pydantic.TypeAdapter(_schema.JSONInput).validate_python(input_json)
 
         return input_json
 
@@ -121,10 +123,10 @@ class CaseHandle(NamedTuple):
 
     def template_extend(
         self,
-        case_extension: ModtranInput | None = None,
+        case_extension: _schema.ModtranInput | None = None,
         /,
         make_copy: bool = True,
-        **kwargs: Unpack[ModtranInput],
+        **kwargs: Unpack[_schema.ModtranInput],
     ) -> Self:
         if case_extension is None:
             case_extension = {}

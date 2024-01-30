@@ -19,7 +19,7 @@ from numpy import typing as npt
 
 from . import _util
 from ._env import ModtranEnv
-from .input import _json
+from .input import schema as _schema
 
 AtmoCorrectDataDType: Final = np.dtype(
     [
@@ -215,7 +215,7 @@ def read_acd_binary(
     file: str | pathlib.Path | BinaryIO,
     *,
     return_algorithm: Literal[True],
-) -> tuple[np.ndarray[Any, Any], _json.RTAlgorithm]:
+) -> tuple[np.ndarray[Any, Any], _schema.RTAlgorithm]:
     ...
 
 
@@ -230,7 +230,7 @@ def read_acd_binary(
     file: str | pathlib.Path | BinaryIO,
     *,
     return_algorithm: bool = False,
-) -> np.ndarray[Any, Any] | tuple[np.ndarray[Any, Any], _json.RTAlgorithm]:
+) -> np.ndarray[Any, Any] | tuple[np.ndarray[Any, Any], _schema.RTAlgorithm]:
     """
     Read binary atmospheric correction data file (`_b.acd`).
 
@@ -313,10 +313,10 @@ def read_acd_binary(
 
     if return_algorithm:
         algo_lookup = {
-            1: _json.RTAlgorithm.RT_MODTRAN,  # or RT_MODTRAN_POLAR
-            17: _json.RTAlgorithm.RT_CORRK_FAST,
-            33: _json.RTAlgorithm.RT_CORRK_SLOW,
-            100: _json.RTAlgorithm.RT_LINE_BY_LINE,
+            1: _schema.RTAlgorithm.RT_MODTRAN,  # or RT_MODTRAN_POLAR
+            17: _schema.RTAlgorithm.RT_CORRK_FAST,
+            33: _schema.RTAlgorithm.RT_CORRK_SLOW,
+            100: _schema.RTAlgorithm.RT_LINE_BY_LINE,
         }
         return data, algo_lookup[k_int]
 
@@ -415,7 +415,7 @@ def read_tape7_binary(
 
 def read_json_input(
     s: str, *, strip_comments: bool = False, validate: bool = True
-) -> _json.JSONInput:
+) -> _schema.JSONInput:
     """
     Read input JSON file.
 
@@ -442,14 +442,14 @@ def read_json_input(
         input_dict = json.loads(s)
 
     if validate:
-        return pydantic.TypeAdapter(_json.JSONInput).validate_python(input_dict)
+        return pydantic.TypeAdapter(_schema.JSONInput).validate_python(input_dict)
 
     return input_dict  # type: ignore
 
 
 def load_input_defaults(
     mod_data: str | pathlib.Path | None = None,
-) -> _json.ModtranInput:
+) -> _schema.ModtranInput:
     """
     Load the default JSON keywords from the `keywords.json` file in the MODTRAN
     DATA directory.
@@ -487,7 +487,7 @@ def load_input_defaults(
     for key, val in raw_dict.items():
         raw_dict[key] = _marshal_inner(val)
 
-    return pydantic.TypeAdapter(_json.ModtranInput).validate_python(raw_dict)
+    return pydantic.TypeAdapter(_schema.ModtranInput).validate_python(raw_dict)
 
 
 class _CommentedJSONDecoder(json.JSONDecoder):
