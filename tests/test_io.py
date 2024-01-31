@@ -11,13 +11,11 @@ def test_acd_text_binary_match(modtran_exec, tmp_path, algo, simple_case) -> Non
     input_acd_text = (
         pymod6.input.ModtranInputBuilder()
         .add_case(simple_case, RTOPTIONS__MODTRN=algo)
-        .finish_case()
         .build_json_input(output_legacy=True, binary=False)
     )
     input_acd_binary = (
         pymod6.input.ModtranInputBuilder()
         .add_case(simple_case, RTOPTIONS__MODTRN=algo)
-        .finish_case()
         .build_json_input(output_legacy=True, binary=True)
     )
 
@@ -56,7 +54,6 @@ def test_tape7_sli_json_match(
             RTOPTIONS__IEMSCT=mode,
             # RTOPTIONS__IMULT=mod_input.RTMultipleScattering.RT_NO_MULTIPLE_SCATTER,
         )
-        .finish_case()
         .build_json_input(output_sli=True, json_opt=mod_schema.JSONPrintOpt.WRT_OUTPUT)
     )
 
@@ -151,7 +148,6 @@ def test_tape7_sli_binary_match(
             RTOPTIONS__IEMSCT=mode,
             # RTOPTIONS__IMULT=mod_input.RTMultipleScattering.RT_NO_MULTIPLE_SCATTER,
         )
-        .finish_case()
         .build_json_input(output_legacy=True, binary=True, output_sli=True)
     )
     case_files = helpers.run_single_checked(modtran_exec, input_json, tmp_path)

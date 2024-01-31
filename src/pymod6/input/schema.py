@@ -1,5 +1,46 @@
 """
 JSON input file schema.
+
+This module defines [`TypedDict`][TypedDict]s for modelling MODTRAN's JSON
+input data format. These models allow for better static analysis and code
+completion when creating input file structures. At runtime, all of these
+classes are represented by plain dictionaries:
+
+>>> JSONInput()
+{}
+>>> type(JSONInput()) is dict
+True
+
+Dictionaries can be validated against these models using [`pydantic`][pydantic].
+Simply create a [`pydantic.TypeAdapter`][pydantic.TypeAdapter] for a chosen
+model and pass the dictionary you want to validate to the `validate_python`
+method:
+
+>>> import pydantic
+>>> from pymod6.input.schema import ModtranInput
+>>> pydantic.TypeAdapter(ModtranInput).validate_python(
+...     {
+...         "SPECTRAL": {"V1": 4000.0, "V2": "wrong type", "V3": "extraneous"}
+...     }
+... )
+Traceback (most recent call last):
+...
+pydantic_core._pydantic_core.ValidationError: 2 validation errors for typed-dict
+SPECTRAL.V2
+  Input should be a valid number, unable to parse string as a number [type=float_parsing, input_value='wrong type', input_type=str]
+    ...
+SPECTRAL.V3
+  Extra inputs are not permitted [type=extra_forbidden, input_value='extraneous', input_type=str]
+    ...
+
+[TypedDict]: https://docs.python.org/3/library/typing.html#typing.TypedDict
+[pydantic]: https://docs.pydantic.dev/latest/
+[pydantic.TypeAdapter]: https://docs.pydantic.dev/latest/concepts/type_adapter/
+
+See Also
+--------
+pymod6.io.read_json_input : Reading inputs from JSON strings
+pymod6.io.load_input_defaults : Load input keyword defaults.
 """
 
 from __future__ import annotations

@@ -433,6 +433,9 @@ def read_json_input(
     pymod6.input.JSONInput
         Dictionary representation of the JSON input file.
 
+    See Also
+    --------
+    pymod6.input.schema
     """
     if strip_comments:
         input_dict = json.loads(
@@ -463,6 +466,10 @@ def load_input_defaults(
     -------
     pymod6.input.ModtranInput
         Dictionary representation of the JSON input file defaults.
+
+    See Also
+    --------
+    pymod6.input.schema
     """
     if mod_data is None:
         mod_data = ModtranEnv.from_environ().data

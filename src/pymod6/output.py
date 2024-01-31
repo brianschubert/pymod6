@@ -1,6 +1,4 @@
 """
-Output file handling.
-
 Utilities for navigating output file placement in the filesystem.
 """
 
@@ -154,7 +152,14 @@ class CaseResultFilesNavigator:
     """
     Index into available result files for a single case.
 
-    Not all files will exist, depending on execution options.
+    This class inspects the `"FILEOPTIONS"` from a MODTRAN run to determine the
+    locations of various output files.
+
+    Not all files will exist, depending on execution options. You can use the
+    [`exists`](https://docs.python.org/3/library/pathlib.html#pathlib.Path.exists)
+    or
+    [`is_file`](https://docs.python.org/3/library/pathlib.html#pathlib.Path.is_file)
+    methods on the `Path` objects to check for file existence.
 
     .. warning::
         Some files may contain results for multiple cases (e.g. '.csv', '.acd', ...)

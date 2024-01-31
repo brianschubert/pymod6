@@ -26,7 +26,6 @@ def test_files_exist_json(
     input_json = (
         pymod6.input.ModtranInputBuilder()
         .add_case(simple_case)
-        .finish_case()
         .build_json_input(json_opt=json_opt)
     )
 
@@ -62,7 +61,6 @@ def test_files_exist_legacy(
             simple_case,
             RTOPTIONS__MODTRN=mod_schema.RTAlgorithm.RT_CORRK_FAST,
         )
-        .finish_case()
         .build_json_input(
             output_legacy=True,
             binary=binary,
@@ -116,7 +114,6 @@ def test_files_exist_sli(
             simple_case,
             RTOPTIONS__MODTRN=mod_schema.RTAlgorithm.RT_CORRK_FAST,
         )
-        .finish_case()
         .build_json_input(
             output_sli=True,
             outupt_corrk=use_corrk,
@@ -153,7 +150,6 @@ def test_files_exist_csv(
             simple_case,
             RTOPTIONS__MODTRN=mod_schema.RTAlgorithm.RT_CORRK_FAST,
         )
-        .finish_case()
         .build_json_input(
             output_csv=True,
             outupt_corrk=use_corrk,

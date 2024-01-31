@@ -1,10 +1,10 @@
 """
 Unit conversion utilities.
 
-These utilities are strictly typed-hinted to make most argument issues static type
-errors instead of potential runtime errors. For example, attempting to use a frequency
-measurement with an invalid unit like ``Frequency(1, "cm")`` can be detected as a
-type error by static analysis tools (mypy, pyright, PyCharm, ...).
+These utilities are strictly typed-hinted so that most argument issues become static
+type errors instead of potential runtime errors. For example, attempting to use a
+frequency measurement with an invalid unit like ``Frequency(1, "um")`` can be detected
+as a type error by static analysis tools (mypy, pyright, PyCharm, ...).
 """
 
 from __future__ import annotations

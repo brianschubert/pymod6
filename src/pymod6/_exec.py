@@ -66,10 +66,10 @@ class ModtranExecutable:
 
         Examples
         --------
-
-        >>> mod_exec = ModtranExecutable()
-        >>> mod_exec.license_status()
-        'STAT_VALID ...'
+        ```python
+        mod_exec = ModtranExecutable()
+        print(mod_exec.license_status())  # 'STAT_VALID ...'
+        ```
         """
         result = subprocess.run(
             [self._env.exe, "-license_status"],
@@ -90,10 +90,10 @@ class ModtranExecutable:
 
         Examples
         --------
-
-        >>> mod_exec = ModtranExecutable()
-        >>> mod_exec.version()
-        'MODTRAN(R) 6.0...'
+        ```python
+        mod_exec = ModtranExecutable()
+        print(mod_exec.version())  # 'MODTRAN(R) 6.0...'
+        ```
         """
         result = subprocess.run(
             [self._env.exe, "-version"],

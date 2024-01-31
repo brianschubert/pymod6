@@ -1,3 +1,9 @@
+"""
+* `pymod6.input` - Input file construction and handling.
+* `pymod6.io` - I/O for input and output files.
+* `pymod6.output` - Utilities for navigating output file placement in the filesystem.
+* `pymod6.unit` - Unit conversion utilities.
+"""
 from __future__ import annotations
 
 import importlib.metadata
