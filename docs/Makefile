@@ -7,10 +7,20 @@ PDOC_PORT   := 8080
 .PHONY: html http install_deps clean
 
 html: install_deps
-	${PDOC_EXE} --docformat=numpy --output-directory=html ${PACKAGES}
+	${PDOC_EXE} \
+		--docformat=numpy \
+		--template-directory=templates \
+		--output-directory=html \
+		${PACKAGES}
 
 server: install_deps
-	${PDOC_EXE} --docformat=numpy --host ${PDOC_HOST} --port ${PDOC_PORT} --no-browser ${PACKAGES}
+	${PDOC_EXE} \
+		--docformat=numpy \
+		--template-directory=templates \
+		--host ${PDOC_HOST} \
+		--port ${PDOC_PORT} \
+		--no-browser \
+		${PACKAGES}
 
 install_deps:
 	${PYTHON_EXE} -m pip install pdoc

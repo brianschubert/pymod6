@@ -1,0 +1,37 @@
+{% extends "default/module.html.jinja2" %}
+
+{# Pretty print and syntax highlight variable default values of mapping type.  #}
+{% macro default_value(var) -%}
+    {%- if var.default_value  %}
+        =
+        {% if var.default_value is mapping %}
+            <span class="default_value">{{ var.default_value | pprint | highlight  }}</span>
+        {% else %}
+            {% if var.default_value_str and var.default_value_str | length > 100 -%}
+                <input id="{{ var.qualname }}-view-value" class="view-value-toggle-state" type="checkbox" aria-hidden="true" tabindex="-1">
+                <label class="view-value-button pdoc-button" for="{{ var.qualname }}-view-value"></label>
+            {%- endif -%}
+            <span class="default_value">{{ var.default_value_str | escape | linkify }}</span>
+        {% endif %}
+    {%- endif -%}
+{% endmacro %}
+
+{# Display first paragraph of docstring under submodules in nav bar. #}
+{% block nav_submodules %}
+    {% if module.submodules %}
+        <h2>Submodules</h2>
+        <ul>
+            {% for submodule in module.submodules if is_public(submodule) | trim %}
+                {% if submodule.docstring %}
+                    {% set doc_short = submodule.docstring.split("\n\n")[0] %}
+                   {# TODO: tidy #}
+                    {% set format_str = "<strong>%s</strong><span style=\"margin-left: 5mm; display: block\">%s</span>" %}
+                    {% set link_text = format_str| format(submodule.name, doc_short | truncate(88) ) %}
+                {% else %}
+                    {% set link_text = "<strong>%s</strong>" | format(submodule.name) %}
+                {% endif %}
+                <li>{{ submodule.taken_from | link(text=link_text) }}</li>
+            {% endfor %}
+        </ul>
+    {% endif %}
+{% endblock %}
