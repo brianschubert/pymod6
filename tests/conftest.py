@@ -1,12 +1,10 @@
 from __future__ import annotations
 
-import copy
 import pathlib
 
 import pytest
 
 import pymod6
-from pymod6 import input as mod_input
 
 
 @pytest.fixture(scope="session")
@@ -43,12 +41,16 @@ def modtran_exec(modtran_env) -> pymod6.ModtranExecutable:
     return mod_exec
 
 
-@pytest.fixture(scope="session")
-def simple_case() -> mod_input.ModtranInput:
-    case: mod_input.ModtranInput = copy.deepcopy(mod_input.basecases.BASE)
-    case["SPECTRAL"]["V1"] = 4000
-    case["SPECTRAL"]["V2"] = 4001
-    return case
+@pytest.fixture()
+def simple_case() -> pymod6.input.schema.CaseInput:
+    spectral_inputs = pymod6.input.make_case(
+        SPECTRAL__V1=4000.0,
+        SPECTRAL__V2=4001.0,
+    )
+    return pymod6.input.merge_case_parts(
+        pymod6.input.basecases.BASE_0,
+        spectral_inputs,
+    )
 
 
 @pytest.fixture
@@ -65,7 +67,7 @@ class _Helpers:
     @staticmethod
     def run_single_checked(
         mod_exe: pymod6.ModtranExecutable,
-        input_json: mod_input.JSONInput,
+        input_json: pymod6.input.schema.JSONInput,
         work_dir: pathlib.Path,
     ) -> pymod6.output.CaseResultFilesNavigator:
         """Execute a single-case MODTRAN run. Verify the process exited OK."""

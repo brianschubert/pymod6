@@ -1,23 +1,41 @@
 """
 Prototypes for common input cases.
 
+This module defines partially-specified case-input dictionaries for common sets of 
+input parameters. These parts can be combined into a complete input case using
+`pymod6.input.merge_case_parts`. For example:
+```python
+base_case = merge_case_parts(
+    RTOPTIONS_COMMON,
+    SURFACE_REFL_CONST_1,
+    SPECTRAL_BAND_MODEL_01_2013,
+    SPECTRAL_VNIR,
+)
+````
+
 .. warning::
     Be careful not accidentally mutate these base cases. Always make a *deep copy*
     of a base case before modifying it:
 
     >>> import copy
-    >>> from pymod6.input.basecases import VNIR_SWIR
-    >>> my_base_case = copy.deepcopy(VNIR_SWIR)
+    >>> from pymod6.input.basecases import BASE_0
+    >>> my_base_case = copy.deepcopy(BASE_0)
     >>> my_base_case[...] = ...
+
+See Also
+--------
+pymod6.input.merge_case_parts
+pymod6.input.ModtranInputBuilder
 """
 
 import copy
 from typing import Final
 
 from .. import unit as _unit
+from . import _util as _input_util
 from . import schema as _schema
 
-BASE: Final[_schema.ModtranInput] = _schema.ModtranInput(
+RTOPTIONS_COMMON: Final[_schema.CaseInput] = _schema.CaseInput(
     RTOPTIONS=_schema.RTOptions(
         IEMSCT=_schema.RTExecutionMode.RT_SOLAR_AND_THERMAL,
         MODTRN=_schema.RTAlgorithm.RT_MODTRAN,
@@ -25,37 +43,101 @@ BASE: Final[_schema.ModtranInput] = _schema.ModtranInput(
         DISALB=True,
         # NSTR=8,
     ),
+)
+"""Common RTOPTIONS."""
+
+SURFACE_REFL_CONST_0: Final[_schema.CaseInput] = _schema.CaseInput(
+    SURFACE=_schema.Surface(
+        SURFTYPE=_schema.SurfaceType.REFL_CONSTANT,
+        SURREF=0.0,
+    ),
+)
+"""Surface with constant reflectance of 0."""
+
+SURFACE_REFL_CONST_1: Final[_schema.CaseInput] = _schema.CaseInput(
     SURFACE=_schema.Surface(
         SURFTYPE=_schema.SurfaceType.REFL_CONSTANT,
         SURREF=1.0,
     ),
+)
+"""Surface with constant reflectance of 1."""
+
+
+SPECTRAL_BAND_MODEL_01_2013: Final[_schema.CaseInput] = _schema.CaseInput(
     SPECTRAL=_schema.Spectral(
-        DV=1.0,  # recommended FWHM/2 for Nyquist sampling
-        FWHM=2.0,
         LBMNAM="T",
         BMNAME="01_2013",
     ),
 )
-"""Common base case."""
+
+# --- Spectral bands
 
 # https://en.wikipedia.org/wiki/VNIR
-VNIR: Final[_schema.ModtranInput] = copy.deepcopy(BASE)
-"""Visible and near-infrared (VNIR), 400-1400nm."""
-VNIR["SPECTRAL"]["V1"] = _unit.Wavelength(1400, "nm").as_wavenumber("cm-1")
-VNIR["SPECTRAL"]["V2"] = _unit.Wavelength(400, "nm").as_wavenumber("cm-1")
+SPECTRAL_VNIR: Final[_schema.CaseInput] = _schema.CaseInput(
+    SPECTRAL=_schema.Spectral(
+        V1=round(_unit.Wavelength(1400, "nm").as_wavenumber("cm-1"), 0),
+        V2=round(_unit.Wavelength(400, "nm").as_wavenumber("cm-1"), 0),
+    )
+)
+"""
+Visible and near-infrared (VNIR), 400-1400nm.
+
+SPECTRAL.{V1,V2} are given in wavenumbers. This assume that SPECTRAL.FLAGS[0] is blank
+or "W".
+"""
 
 
-SWIR: Final[_schema.ModtranInput] = copy.deepcopy(BASE)
-"""Short-wavelength infrared (SWIR), 1400-2500nm."""
-SWIR["SPECTRAL"]["V1"] = _unit.Wavelength(2500, "nm").as_wavenumber("cm-1")
-SWIR["SPECTRAL"]["V2"] = _unit.Wavelength(1400, "nm").as_wavenumber("cm-1")
+SPECTRAL_SWIR: Final[_schema.CaseInput] = _schema.CaseInput(
+    SPECTRAL=_schema.Spectral(
+        V1=round(_unit.Wavelength(2500, "nm").as_wavenumber("cm-1"), 0),
+        V2=round(_unit.Wavelength(1400, "nm").as_wavenumber("cm-1"), 0),
+    )
+)
+"""
+Short-wavelength infrared (SWIR), 1400-2500nm.
 
-VNIR_SWIR: Final[_schema.ModtranInput] = copy.deepcopy(BASE)
-"""VNIR-SWIR, 400-2500nm."""
-VNIR_SWIR["SPECTRAL"]["V1"] = SWIR["SPECTRAL"]["V1"]
-VNIR_SWIR["SPECTRAL"]["V2"] = VNIR["SPECTRAL"]["V2"]
+SPECTRAL.{V1,V2} are given in wavenumbers. This assume that SPECTRAL.FLAGS[0] is blank
+or "W".
+"""
 
-LWIR: Final[_schema.ModtranInput] = copy.deepcopy(BASE)
-"""Long-wavelength infrared (LWIR), 8-14um."""
-LWIR["SPECTRAL"]["V1"] = _unit.Wavelength(14, "um").as_wavenumber("cm-1")
-LWIR["SPECTRAL"]["V2"] = _unit.Wavelength(8, "um").as_wavenumber("cm-1")
+
+SPECTRAL_VNIR_SWIR: Final[_schema.CaseInput] = _schema.CaseInput(
+    SPECTRAL=_schema.Spectral(
+        V1=SPECTRAL_SWIR["SPECTRAL"]["V1"],
+        V2=SPECTRAL_VNIR["SPECTRAL"]["V2"],
+    )
+)
+"""
+VNIR-SWIR, 400-2500nm.
+
+SPECTRAL.{V1,V2} are given in wavenumbers. This assume that SPECTRAL.FLAGS[0] is blank
+or "W".
+"""
+
+
+SPECTRAL_LWIR: Final[_schema.CaseInput] = _schema.CaseInput(
+    SPECTRAL=_schema.Spectral(
+        V1=round(_unit.Wavelength(14, "um").as_wavenumber("cm-1"), 0),
+        V2=round(_unit.Wavelength(8, "um").as_wavenumber("cm-1"), 0),
+    )
+)
+"""
+Long-wavelength infrared (LWIR), 8-14um.
+
+SPECTRAL.{V1,V2} are given in wavenumbers. This assume that SPECTRAL.FLAGS[0] is blank
+or "W".
+"""
+
+# --- Complete base cases.
+
+BASE_0: Final[_schema.CaseInput] = _input_util.merge_case_parts(
+    RTOPTIONS_COMMON,
+    SURFACE_REFL_CONST_1,
+    # SPECTRAL_BAND_MODEL_01_2013,
+    _input_util.make_case(
+        # recommended FWHM/2 for Nyquist sampling
+        SPECTRAL__FWHM=2.0,
+        SPECTRAL__DV=1.0,
+    ),
+)
+"""Base case consisting is miscellaneous common options."""

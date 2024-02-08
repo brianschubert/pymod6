@@ -1,6 +1,5 @@
 from __future__ import annotations
 
-import copy
 import datetime
 from typing import NamedTuple
 
@@ -8,6 +7,7 @@ import pydantic
 from typing_extensions import Self, Unpack
 
 from .. import _util
+from . import _util as _input_util
 from . import schema as _schema
 
 
@@ -26,10 +26,11 @@ class ModtranInputBuilder:
       all cases.
     """
 
-    _cases: list[_schema.ModtranInput]
+    _cases: list[_schema.CaseInput]
 
     _root_name_format: str
 
+    # TODO: per arg?
     _validate: bool
 
     def __init__(
@@ -64,11 +65,9 @@ class ModtranInputBuilder:
 
     def add_case(
         self,
-        case_input: _schema.ModtranInput,
-        /,
-        make_copy: bool = True,
-        **kwargs: Unpack[_schema.ModtranInput],
-    ) -> Self:
+        case_input: _schema.CaseInput,
+        **kwargs: Unpack[_schema.CaseInput],
+    ) -> ModtranInputBuilder:
         """
         Add a new case to this builder.
 
@@ -110,15 +109,13 @@ class ModtranInputBuilder:
         >>> builder.build_json_input()
         {'MODTRAN': [{'MODTRANINPUT': {'NAME': 'case0', 'CASE': 0, ...}}]}
         """
-        _handle = self.add_template_case(case_input, make_copy=make_copy, **kwargs)
+        _handle = self.add_template_case(case_input, **kwargs)
         return self
 
     def add_template_case(
         self,
-        case_input: _schema.ModtranInput,
-        /,
-        make_copy: bool = True,
-        **kwargs: Unpack[_schema.ModtranInput],
+        case_input: _schema.CaseInput,
+        **kwargs: Unpack[_schema.CaseInput],
     ) -> TemplateCaseHandle:
         """
         Add a new template case to this builder.
@@ -145,25 +142,20 @@ class ModtranInputBuilder:
         >>> print(handle)
         TemplateCaseHandle(builder=ModtranInputBuilder(<1 cases>), case_index=0)
         """
-        if make_copy:
-            case_input = copy.deepcopy(case_input)
 
-        index = self._next_index()
-        case_input["CASE"] = index
-
-        for key, value in kwargs.items():
-            _util.assign_nested_mapping(case_input, key.split("__"), value)  # type: ignore[arg-type]
+        case_input = _input_util.merge_case_parts(
+            case_input,
+            _input_util.make_case(**kwargs),
+            allow_override=True,
+        )
 
         if self._validate:
-            case_input = pydantic.TypeAdapter(_schema.ModtranInput).validate_python(
+            case_input = pydantic.TypeAdapter(_schema.CaseInput).validate_python(
                 case_input
             )
 
-        self._cases.append(case_input.copy())
+        index = self._register_case(case_input)
         return TemplateCaseHandle(self, index)
-
-    def _next_index(self) -> int:
-        return len(self._cases)
 
     def build_json_input(
         self,
@@ -247,14 +239,20 @@ class ModtranInputBuilder:
             file_options["BINARY"] = binary
             file_options["CKPRNT"] = outupt_corrk
 
-        input_json: _schema.JSONInput = {
-            "MODTRAN": [{"MODTRANINPUT": case} for case in self._cases]
-        }
-
+        input_json: _schema.JSONInput = _input_util.input_from_cases(self._cases)
         if self._validate:
             return pydantic.TypeAdapter(_schema.JSONInput).validate_python(input_json)
 
         return input_json
+
+    def _next_index(self) -> int:
+        return len(self._cases)
+
+    def _register_case(self, case: _schema.CaseInput) -> int:
+        index = self._next_index()
+        case["CASE"] = index
+        self._cases.append(case)
+        return index
 
 
 class TemplateCaseHandle(NamedTuple):
@@ -268,24 +266,23 @@ class TemplateCaseHandle(NamedTuple):
 
     def extend(
         self,
-        case_extension: _schema.ModtranInput | None = None,
-        /,
-        make_copy: bool = True,
-        **kwargs: Unpack[_schema.ModtranInput],
-    ) -> Self:
+        case_extension: _schema.CaseInput | None = None,
+        **kwargs: Unpack[_schema.CaseInput],
+    ) -> TemplateCaseHandle:
         """
         Add a new case to the associated builder using this case as a template.
 
         Parameters have the same meaning as in `ModtranInputBuilder.add_case`.
         """
-
         if case_extension is None:
             case_extension = {}
-        elif make_copy:
-            case_extension = copy.deepcopy(case_extension)
+
+        case_extension = _input_util.merge_case_parts(
+            case_extension, _input_util.make_case(**kwargs)
+        )
 
         case_extension["CASE TEMPLATE"] = self.case_index
-        self.builder.add_case(case_extension, make_copy=False, **kwargs)
+        self.builder.add_case(case_extension)
         return self
 
     def finish_template(self) -> ModtranInputBuilder:
