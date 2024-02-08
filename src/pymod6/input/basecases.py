@@ -8,7 +8,6 @@ input parameters. These parts can be combined into a complete input case using
 base_case = merge_case_parts(
     RTOPTIONS_COMMON,
     SURFACE_REFL_CONST_1,
-    SPECTRAL_BAND_MODEL_01_2013,
     SPECTRAL_VNIR,
 )
 ````
@@ -62,13 +61,6 @@ SURFACE_REFL_CONST_1: Final[_schema.CaseInput] = _schema.CaseInput(
 )
 """Surface with constant reflectance of 1."""
 
-
-SPECTRAL_BAND_MODEL_01_2013: Final[_schema.CaseInput] = _schema.CaseInput(
-    SPECTRAL=_schema.Spectral(
-        LBMNAM="T",
-        BMNAME="01_2013",
-    ),
-)
 
 # --- Spectral bands
 
@@ -133,7 +125,6 @@ or "W".
 BASE_0: Final[_schema.CaseInput] = _input_util.merge_case_parts(
     RTOPTIONS_COMMON,
     SURFACE_REFL_CONST_1,
-    # SPECTRAL_BAND_MODEL_01_2013,
     _input_util.make_case(
         # recommended FWHM/2 for Nyquist sampling
         SPECTRAL__FWHM=2.0,
