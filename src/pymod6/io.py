@@ -452,7 +452,7 @@ def read_json_input(
 
 def load_input_defaults(
     mod_data: str | pathlib.Path | None = None,
-) -> _schema.ModtranInput:
+) -> _schema.CaseInput:
     """
     Load the default JSON keywords from the `keywords.json` file in the MODTRAN
     DATA directory.
@@ -494,7 +494,7 @@ def load_input_defaults(
     for key, val in raw_dict.items():
         raw_dict[key] = _marshal_inner(val)
 
-    return pydantic.TypeAdapter(_schema.ModtranInput).validate_python(raw_dict)
+    return pydantic.TypeAdapter(_schema.CaseInput).validate_python(raw_dict)
 
 
 class _CommentedJSONDecoder(json.JSONDecoder):

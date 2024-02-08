@@ -17,8 +17,8 @@ model and pass the dictionary you want to validate to the `validate_python`
 method:
 
 >>> import pydantic
->>> from pymod6.input.schema import ModtranInput
->>> pydantic.TypeAdapter(ModtranInput).validate_python(
+>>> from pymod6.input.schema import CaseInput
+>>> pydantic.TypeAdapter(CaseInput).validate_python(
 ...     {
 ...         "SPECTRAL": {"V1": 4000.0, "V2": "wrong type", "V3": "extraneous"}
 ...     }
@@ -55,8 +55,8 @@ __all__ = [
     # JSON input
     "JSONInput",
     "Case",
-    "ModtranInput",
-    "ModtranStatus",
+    "CaseInput",
+    "CaseStatus",
     # MODTRANINPUT
     "RTOptions",
     "Atmosphere",
@@ -435,7 +435,7 @@ class JSONPrintOpt(enum.IntFlag):
 
 
 class RTOptions(TypedDict, total=False):
-    """Settings for `ModtranInput.RTOPTIONS`."""
+    """Settings for `CaseInput.RTOPTIONS`."""
 
     IEMSCT: RTExecutionMode
     MODTRN: RTAlgorithm
@@ -449,7 +449,7 @@ class RTOptions(TypedDict, total=False):
 
 
 class Atmosphere(TypedDict, total=False):
-    """Settings for `ModtranInput.ATMOSPHERE`."""
+    """Settings for `CaseInput.ATMOSPHERE`."""
 
     MODEL: AtmosphereModel
     M1: AtmosphereModel
@@ -493,7 +493,7 @@ class AtmosphereProfile(TypedDict, total=False):
 
 
 class Aerosol(TypedDict, total=False):
-    """Settings for `ModtranInput.AEROSOL`."""
+    """Settings for `CaseInput.AEROSOL`."""
 
     IHAZE: AerosolHaze
     VIS: float
@@ -546,7 +546,7 @@ class Aerosol(TypedDict, total=False):
 
 
 class Geometry(TypedDict, total=False):
-    """Settings for `ModtranInput.GEOMETRY`."""
+    """Settings for `CaseInput.GEOMETRY`."""
 
     ITYPE: Literal[1, 2, 3, 4]
     H1ALT: float
@@ -583,7 +583,7 @@ class Geometry(TypedDict, total=False):
 
 
 class Surface(TypedDict, total=False):
-    """Settings for `ModtranInput.SURFACE`."""
+    """Settings for `CaseInput.SURFACE`."""
 
     SURFTYPE: SurfaceType
     SURREF: float
@@ -623,7 +623,7 @@ class SurfaceParam(TypedDict, total=False):
 
 
 class Spectral(TypedDict, total=False):
-    """Settings for `ModtranInput.SPECTRAL`."""
+    """Settings for `CaseInput.SPECTRAL`."""
 
     V1: float
     V2: float
@@ -645,7 +645,7 @@ class Spectral(TypedDict, total=False):
 
 
 class FileOptions(TypedDict, total=False):
-    """Settings for `ModtranInput.FILEOPTIONS`."""
+    """Settings for `CaseInput.FILEOPTIONS`."""
 
     NOFILE: Literal[0, 1, 2, "FC_ALLOWALL", "FC_TAPE6ONLY", "FC_NOFILES"]
     BINARY: bool
@@ -674,8 +674,8 @@ class FileOptions(TypedDict, total=False):
     ]
 
 
-ModtranInput = TypedDict(
-    "ModtranInput",
+CaseInput = TypedDict(
+    "CaseInput",
     {
         "NAME": str,
         "DESCRIPTION": str,
@@ -692,11 +692,11 @@ ModtranInput = TypedDict(
     },
     total=False,
 )
-ModtranInput.__doc__ = """Settings for `Case.MODTRANINPUT`."""
-ModtranInput.__pydantic_config__ = ConfigDict(extra="forbid")  # type: ignore[attr-defined]
+CaseInput.__doc__ = """Settings for `Case.MODTRANINPUT`."""
+CaseInput.__pydantic_config__ = ConfigDict(extra="forbid")  # type: ignore[attr-defined]
 
 
-class ModtranStatus(TypedDict, total=False):
+class CaseStatus(TypedDict, total=False):
     """Settings for `Case.MODTRANSTATUS`."""
 
     VERSION: str
@@ -708,9 +708,9 @@ class ModtranStatus(TypedDict, total=False):
 class Case(TypedDict, total=False):
     """Entries in `JSONInput.MODTRAN`."""
 
-    MODTRANINPUT: ModtranInput
-    MODTRANSTATUS: ModtranStatus
-    MODTRANOUTPUT: object
+    MODTRANINPUT: CaseInput
+    MODTRANSTATUS: CaseStatus
+    MODTRANOUTPUT: dict[str, Any]
 
 
 class JSONInput(TypedDict, total=True):
