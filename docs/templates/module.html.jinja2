@@ -2,7 +2,7 @@
 
 {# Pretty print and syntax highlight variable default values of mapping type.  #}
 {% macro default_value(var) -%}
-    {%- if var.default_value  %}
+    {%- if var.default_value_str  %}
         =
         {% if var.default_value is mapping %}
             <span class="default_value">{{ var.default_value | pprint | highlight  }}</span>
