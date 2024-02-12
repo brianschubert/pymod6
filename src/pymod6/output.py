@@ -142,7 +142,7 @@ class ModtranOutputFiles(Sequence["CaseResultFilesNavigator"]):
         case = self.input_json["MODTRAN"][case_index]
         return CaseResultFilesNavigator(
             self.work_dir,
-            case["MODTRANINPUT"]["FILEOPTIONS"],
+            case["MODTRANINPUT"].get("FILEOPTIONS", {}),
             case["MODTRANINPUT"].get("NAME"),
         )
 
@@ -176,7 +176,10 @@ class CaseResultFilesNavigator:
 
     @property
     def json(self) -> pathlib.Path:
-        path = self.work_dir.joinpath(self.file_options["JSONPRNT"])
+        # If JSON file not requested, return sentinel that should fail .exists() checks.
+        path = self.work_dir.joinpath(
+            self.file_options.get("JSONPRNT", ".JSONPRNT_NOT_SET")
+        )
         # Always replaces last suffix with .json
         return path.with_suffix(".json")
 
