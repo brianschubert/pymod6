@@ -53,7 +53,7 @@ def simple_case() -> pymod6.input.schema.CaseInput:
     )
 
 
-@pytest.fixture
+@pytest.fixture(scope="session")
 def helpers() -> type[_Helpers]:
     return _Helpers
 
