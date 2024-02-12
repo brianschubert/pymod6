@@ -342,7 +342,7 @@ class SurfaceType(_StrEnum):
 
     REFL_CONSTANT = "REFL_CONSTANT"
     REFL_LAMBER_MODEL = "REFL_LAMBER_MODEL"
-    REFL_RBDF = "REFL_RBDF"
+    REFL_BRDF = "REFL_BRDF"
 
 
 @enum.unique
@@ -466,10 +466,12 @@ class Atmosphere(TypedDict, total=False):
     PROFILES: object  # TODO
     CO2MX: float
     H2OSTR: float
-    H2OUNIT: Literal[" ", "+", "g", "a"]
+    # uppercase variants appears in TEST/JSON examples.
+    H2OUNIT: Literal[" ", "+", "g", "a", "G", "A"]
     H2OOPT: Literal[" "]  # not documented?
     O3STR: float
-    O3UNIT: Literal[" ", "g", "a"]
+    # uppercase variants appears in TEST/JSON examples.
+    O3UNIT: Literal[" ", "g", "a", "G", "A"]
     C_PROF: Literal[0, 1, 2, 3, 4, 5, 6, 7]
     S_UMIX: list[float]
     S_XSEC: list[float]
@@ -499,7 +501,8 @@ class Aerosol(TypedDict, total=False):
     VIS: float
     WSS: float
     WHH: float
-    ICSTL: Literal[1, 2, 3, 4, 5, 6, 7, 8, 9, 10]
+    # 0 undocumented, but appears in TEST/JSON examples.
+    ICSTL: Literal[0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10]
     ISEASN: AerosolSeason
     IVULCN: AerosolStratospheric
     ICLD: AerosolCloud
@@ -548,7 +551,11 @@ class Aerosol(TypedDict, total=False):
 class Geometry(TypedDict, total=False):
     """Settings for `CaseInput.GEOMETRY`."""
 
-    ITYPE: Literal[1, 2, 3, 4]
+    # TEST/JSON/plumeMLOS uses undocumented -8
+    # TEST/JSON/plumeMLOSthmCK.json use undocumented -11
+    # TEST/JSON/lut01thm.json used undocumented -15
+    # TEST/JSON/lut01BIN.json used undocumented -63
+    ITYPE: Literal[1, 2, 3, 4, -8, -11, -15, -63]
     H1ALT: float
     H2ALT: float
     OBSZEN: float
@@ -629,8 +636,10 @@ class Spectral(TypedDict, total=False):
     V2: float
     DV: float
     FWHM: float
-    YFLAG: Literal["T", "R"]
-    XFLAG: Literal["W", "M", "N"]
+    # lowercase and blank variants appear in TEST/JSON examples.
+    YFLAG: Literal[" ", "T", "R", "t", "r"]
+    # lowercase and blank variants appear in TEST/JSON examples.
+    XFLAG: Literal[" ", "W", "M", "N", "w", "m", "n"]
     DLIMIT: str
     FLAGS: object
     MLFLX: int
