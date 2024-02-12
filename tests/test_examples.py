@@ -1,7 +1,7 @@
 """
 Tests for examples in `<install root>/TEST/JSON`.
 """
-
+import os
 import pathlib
 from typing import TYPE_CHECKING
 
@@ -25,6 +25,9 @@ def example_json(example_file) -> pymod6.input.schema.JSONInput:
 def example_outputs(
     modtran_exec, example_file, tmp_path_factory, helpers
 ) -> pymod6.output.ModtranOutputFiles:
+    if os.environ.get("TEST_EXAMPLE") != "1":
+        pytest.skip("set TEST_EXAMPLE=1 in the environment to run examples")
+
     input_json = pymod6.io.read_json_input(example_file.read_text())
 
     run_dir = tmp_path_factory.mktemp("modtran_run")
