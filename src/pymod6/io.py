@@ -299,17 +299,11 @@ def read_acd_binary(
             f"got unexpected word(s) in (first, last)-row delimiter columns: {check_delims}"
         )
 
-    # # Sanity check - examine k_int progression if correlated-k was used.
-    if k_int > 1:
-        expected_k_progression = np.arange(1, k_int + 1)
-        leading_progression = data[:k_int]["k_int"]
-        trailing_progression = data[-k_int:]["k_int"]
-        if np.any(leading_progression != expected_k_progression) or np.any(
-            trailing_progression != expected_k_progression
-        ):
-            raise ValueError(
-                f"unexpected k_int progression: expected {expected_k_progression}..., got {leading_progression}...{trailing_progression}"
-            )
+    # # Sanity check - examine maximum k_int.
+    if data["k_int"].max() != k_int:
+        raise ValueError(
+            f"bad k_int column, expected maximum of {k_int}, found {data['k_int'].max()}"
+        )
 
     if return_algorithm:
         algo_lookup = {
