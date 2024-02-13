@@ -9,7 +9,7 @@ from __future__ import annotations
 import importlib.metadata
 from typing import Final
 
-from . import input, io, output, unit
+from . import bandmodel, input, io, output, unit
 from ._env import ModtranEnv
 from ._exec import ModtranExecutable, ModtranResult
 
@@ -22,6 +22,7 @@ __all__ = [
     "io",
     "output",
     "unit",
+    "bandmodel",
     "ModtranExecutable",
     "ModtranResult",
     "ModtranEnv",
