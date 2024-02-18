@@ -8,15 +8,13 @@ import pathlib
 import subprocess
 import tempfile
 from collections.abc import Sequence
-from typing import NamedTuple, Union, cast
+from typing import Any, Literal, NamedTuple, Union, cast, overload
 
 from typing_extensions import TypeAlias
 
-from pymod6 import ModtranEnv
+from pymod6 import ModtranEnv, _util
 from pymod6.input.schema import JSONInput
-
-from . import _util
-from .output import ModtranOutputFiles
+from pymod6.output import ModtranOutputFiles
 
 _PathLike: TypeAlias = Union[str, os.PathLike[str]]
 
@@ -71,8 +69,8 @@ class ModtranExecutable:
         print(mod_exec.license_status())  # 'STAT_VALID ...'
         ```
         """
-        result = subprocess.run(
-            [self._env.exe, "-license_status"],
+        result = self.execute(
+            "-license_status",
             check=True,
             capture_output=True,
             text=True,
@@ -95,8 +93,8 @@ class ModtranExecutable:
         print(mod_exec.version())  # 'MODTRAN(R) 6.0...'
         ```
         """
-        result = subprocess.run(
-            [self._env.exe, "-version"],
+        result = self.execute(
+            "-version",
             check=True,
             capture_output=True,
             text=True,
@@ -135,9 +133,8 @@ class ModtranExecutable:
             json.dump(input_file, temp_file)
             temp_file.flush()
 
-            result = subprocess.run(
-                [self._env.exe, temp_file.name],
-                env=self._env.to_environ(),
+            result = self.execute(
+                temp_file.name,
                 cwd=work_dir,
                 capture_output=True,
                 text=True,
@@ -199,6 +196,60 @@ class ModtranExecutable:
                     raise
 
         return results
+
+    @overload
+    def execute(
+        self,
+        *cli_args: str | bytes | os.PathLike[str] | os.PathLike[bytes],
+        text: Literal[True],
+        **kwargs: Any,
+    ) -> subprocess.CompletedProcess[str]:
+        ...
+
+    @overload
+    def execute(
+        self,
+        *cli_args: str | bytes | os.PathLike[str] | os.PathLike[bytes],
+        text: Literal[None, False],
+        **kwargs: Any,
+    ) -> subprocess.CompletedProcess[bytes]:
+        ...
+
+    @overload
+    def execute(
+        self,
+        *cli_args: str | bytes | os.PathLike[str] | os.PathLike[bytes],
+        text: bool | None = None,
+        **kwargs: Any,
+    ) -> subprocess.CompletedProcess[Any]:
+        ...
+
+    def execute(
+        self,
+        *cli_args: str | bytes | os.PathLike[str] | os.PathLike[bytes],
+        text: bool | None = None,
+        **kwargs: Any,
+    ) -> subprocess.CompletedProcess[str] | subprocess.CompletedProcess[bytes]:
+        """
+        Directly execute MODTRAN in a subprocess with the given CLI arguments.
+
+        Parameters
+        ----------
+        *cli_args
+            Command line arguments.
+        text : bool, optional
+            Whether to use text mode for stdin/stdout/stderr streams.
+        **kwargs : Any
+            Keyword arguments to pass to ``subprocess.run``.
+
+        Returns
+        -------
+        subprocess.CompletedProcess
+            Completed MODTRAN subprocess status.
+        """
+        # User provided env takes precedence.
+        kwargs["env"] = self._env.to_environ() | kwargs.get("env", {})
+        return subprocess.run([self._env.exe, *cli_args], text=text, **kwargs)
 
 
 def _path_or_default_work_dir(p: _PathLike | None) -> pathlib.Path:
