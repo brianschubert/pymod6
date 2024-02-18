@@ -161,14 +161,14 @@ def merge_nested_mappings(
                 try:
                     merge_nested_mappings(
                         cast("_NestedMutableMapping[_K, _V]", target[key]),
-                        cast("_NestedMapping[_K, _V]", value),
+                        value,
                         allow_override=allow_override,
                     )
                 except MappingMergeError as ex:
                     ex.key_path = (key, *ex.key_path)
                     raise
             else:
-                target[key] = cast("_V", value)
+                target[key] = value
 
 
 def num_digits(x: int) -> int:
