@@ -27,7 +27,6 @@ pymod6.input.merge_case_parts
 pymod6.input.ModtranInputBuilder
 """
 
-import copy
 from typing import Final
 
 from .. import unit as _unit

@@ -150,7 +150,7 @@ def merge_nested_mappings(
                 and not isinstance(target[key], Mapping)
             ):
                 raise MappingMergeError(
-                    f"cannot override value when allow_override=False",
+                    "cannot override value when allow_override=False",
                     key_path=(key,),
                 )
 

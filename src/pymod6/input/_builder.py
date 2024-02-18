@@ -4,7 +4,7 @@ import datetime
 from typing import NamedTuple
 
 import pydantic
-from typing_extensions import Self, Unpack
+from typing_extensions import Unpack
 
 from .. import _util
 from . import _util as _input_util

@@ -8,9 +8,7 @@ from typing import Any, Iterable, cast
 
 import pydantic
 
-import pymod6
 from pymod6 import _util
-from pymod6.input import basecases
 from pymod6.input import schema as _schema
 
 
