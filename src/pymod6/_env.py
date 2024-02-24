@@ -5,6 +5,7 @@ import dataclasses
 import os
 import pathlib
 import re
+import string
 from dataclasses import dataclass
 from typing import ContextManager, Final, Mapping, TextIO, cast
 
@@ -91,13 +92,18 @@ class ModtranEnv:
         return cls(exe=exe, data=data, extra=mod_vars)
 
     @classmethod
-    def from_shell_file(cls, file: str | pathlib.Path | TextIO) -> Self:
+    def from_shell_file(
+        cls, file: str | pathlib.Path | TextIO, *, substitute: bool = False
+    ) -> Self:
         """
         Infer MODTRAN environment by parsing a shell file.
+
         Parameters
         ----------
         file : file path or file-like object
             The shell file to extract environment variable definitions from.
+        substitute : bool, optional
+            Whether to substitute `$variable` expansions. Defaults to `False`.
 
         Returns
         -------
@@ -109,11 +115,17 @@ class ModtranEnv:
         >>> import io
         >>> shell_file = io.StringIO('''
         ...     export MODTRAN_EXE=/path/to/exe
-        ...     export MODTRAN_DATA=/path/to/DATA
-        ...     MODTRAN_OTHER=other
+        ...     MODTRAN_DATA=/path/to/DATA
         ... ''')
         >>> ModtranEnv.from_shell_file(shell_file)
-        ModtranEnv(exe=...Path('/path/to/exe'), data=...Path('/path/to/DATA'), extra={'MODTRAN_OTHER': 'other'})
+        ModtranEnv(exe=...Path('/path/to/exe'), data=...Path('/path/to/DATA'), extra={})
+        >>> shell_file = io.StringIO('''
+        ...     export MODTRAN_BASE=/base/path
+        ...     export MODTRAN_EXE=$MODTRAN_BASE/exe
+        ...     export MODTRAN_DATA="${MODTRAN_BASE}/DATA"
+        ... ''')
+        >>> ModtranEnv.from_shell_file(shell_file, substitute=True)
+        ModtranEnv(exe=...Path('/base/path/exe'), data=...Path('/base/path/DATA'), extra={'MODTRAN_BASE': '/base/path'})
         """
         cm: ContextManager[TextIO]
         if _util.is_text_io(file):
@@ -128,6 +140,10 @@ class ModtranEnv:
             match["name"]: match["value"]
             for match in _ENV_EXPORT_PATTERN.finditer(text)
         }
+
+        if substitute:
+            for name, value in env_exports.items():
+                env_exports[name] = string.Template(value).safe_substitute(env_exports)
 
         return cls.from_environ(env_exports)
 
