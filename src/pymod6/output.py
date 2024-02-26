@@ -40,6 +40,37 @@ class ModtranOutputFiles(Sequence["CaseResultFilesNavigator"]):
         self.work_dir = pathlib.Path(work_dir)
 
     @classmethod
+    def load(
+        cls,
+        input_file: str | pathlib.Path,
+        work_dir: str | pathlib.Path,
+        validate_json: bool = True,
+    ) -> Self:
+        """
+        Load output files that were produced by the given input file.
+
+        Parameters
+        ----------
+        input_file : path-like
+            Path to input file
+        work_dir : path-like
+            Working directory containing the output files.
+        validate_json : bool, optional
+            Whether to validate the JSON files against the expected schema. Defaults to `True`.
+            Set to `False` if for whatever reason the expected schema deviates from the file
+            contents, and you still wish to attempt to load the JSON files.
+
+        Returns
+        -------
+        Self
+            Case output file collection for the given input file.
+        """
+        input_dict = pymod6.io.read_json_input(
+            pathlib.Path(input_file).read_text(), validate=validate_json
+        )
+        return cls(input_dict, work_dir)
+
+    @classmethod
     def load_directory(
         cls, directory: str | pathlib.Path, validate_json: bool = True
     ) -> Self:
