@@ -233,7 +233,10 @@ def generate_grid_sweep(
     --------
     >>> import pprint
     >>> base_case = {"NAME": "foo"}
-    >>> sweep_axes = [("ATMOSPHERE__H2OSTR", [1, 2]), ("ATMOSPHERE__O3STR", [1, 2])]
+    >>> sweep_axes = [
+    ...     ("ATMOSPHERE__H2OSTR", [1, 2]),
+    ...     ("ATMOSPHERE__O3STR", [1, 2]),
+    ... ]
     >>> sweep_inputs = list(generate_grid_sweep(base_case,  sweep_axes))
     >>> pprint.pprint(sweep_inputs, sort_dicts=False)
     [((0, 0), {'NAME': 'foo', 'ATMOSPHERE': {'H2OSTR': 1, 'O3STR': 1}}),

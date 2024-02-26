@@ -27,6 +27,7 @@ def combine_at(
         Paired indices specifying slices to sum over.
     Returns
     -------
+    array
         Combined spectrum.
 
     Examples
@@ -66,8 +67,11 @@ def combine_by_k_int(
         Intra-band indices, progressing from 1 to N within each modelled band.
     Returns
     -------
+    array
         Combined spectrum.
 
+    Examples
+    --------
     >>> var1 = np.array([0.50, 0.50,   0.25, 0.25, 0.25,  0.25,    0.33, 0.33, 0.34])
     >>> var2 = np.array([0.75, 0.25,   0.50, 0.25, 0.125, 0.125,   0.50, 0.25, 0.25])
     >>> k_int = np.array([  1,    2,      1,    2,     3,     4,      1,    2,    3])
