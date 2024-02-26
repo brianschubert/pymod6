@@ -4,8 +4,12 @@ Misc utilities for handling case inputs.
 
 from __future__ import annotations
 
-from typing import Any, Iterable, cast
+import copy
+import itertools
+from collections.abc import Collection
+from typing import Any, Iterable, Iterator, cast
 
+import numpy as np
 import pydantic
 
 from pymod6 import _util
@@ -13,6 +17,7 @@ from pymod6.input import schema as _schema
 
 
 def make_case(
+    *,
     validate: bool = True,
     **kwargs: Any,
 ) -> _schema.CaseInput:
@@ -198,3 +203,51 @@ def input_from_cases(cases: Iterable[_schema.CaseInput]) -> _schema.JSONInput:
             " Pass a list of length 1 to create a JSON input with a single case."
         )
     return {"MODTRAN": [{"MODTRANINPUT": c} for c in cases]}
+
+
+def generate_grid_sweep(
+    base: _schema.CaseInput,
+    sweep_axes: Iterable[tuple[str | tuple[str, ...], Collection[Any]]],
+) -> Iterator[tuple[tuple[int, ...], _schema.CaseInput]]:
+    """
+    Generate variations of a base case by sweeping through a Cartesian product
+    of possible parameter values.
+
+    Parameters
+    ----------
+    base : pymod6.input.schema.CaseInput
+        Base input case.
+    sweep_axes : iterable of tuples
+        Iterable of tuples describing the input keywords to be swept.
+        The first element should be the input keyword, given either as a tuple of
+        strings or as a dunder-delimianted string. The second element should be an
+        iterable of values that the input keyword should taken on during the sweep.
+
+    Returns
+    -------
+    iterator of tuples
+        Iterator yielding tuples of sweep index and input dictionary values.
+
+
+    Examples
+    --------
+    >>> import pprint
+    >>> base_case = {"NAME": "foo"}
+    >>> sweep_axes = [("ATMOSPHERE__H2OSTR", [1, 2]), ("ATMOSPHERE__O3STR", [1, 2])]
+    >>> sweep_inputs = list(generate_grid_sweep(base_case,  sweep_axes))
+    >>> pprint.pprint(sweep_inputs, sort_dicts=False)
+    [((0, 0), {'NAME': 'foo', 'ATMOSPHERE': {'H2OSTR': 1, 'O3STR': 1}}),
+     ((0, 1), {'NAME': 'foo', 'ATMOSPHERE': {'H2OSTR': 1, 'O3STR': 2}}),
+     ((1, 0), {'NAME': 'foo', 'ATMOSPHERE': {'H2OSTR': 2, 'O3STR': 1}}),
+     ((1, 1), {'NAME': 'foo', 'ATMOSPHERE': {'H2OSTR': 2, 'O3STR': 2}})]
+    """
+
+    sweep_keys, sweep_values = zip(*sweep_axes)
+    sweep_keys = [k.split("__") if isinstance(k, str) else k for k in sweep_keys]
+    shape = tuple(map(len, sweep_values))
+
+    for index, values in zip(np.ndindex(shape), itertools.product(*sweep_values)):
+        case = copy.deepcopy(base)
+        for key, val in zip(sweep_keys, values):
+            _util.assign_nested_mapping(cast("dict[str, Any]", case), key, val)
+        yield index, case

@@ -12,12 +12,13 @@ pymod6.io.load_input_defaults : Load input keyword defaults.
 
 from . import basecases, schema
 from ._builder import ModtranInputBuilder, TemplateCaseHandle
-from ._util import input_from_cases, make_case, merge_case_parts
+from ._util import generate_grid_sweep, input_from_cases, make_case, merge_case_parts
 
 __all__ = [
     "basecases",
     "schema",
     # Utilities
+    "generate_grid_sweep",
     "make_case",
     "merge_case_parts",
     "input_from_cases",
