@@ -463,7 +463,7 @@ class Atmosphere(TypedDict, total=False):
     HMODEL: str
     NLAYERS: int
     NPROF: int
-    PROFILES: object  # TODO
+    PROFILES: list[AtmosphereProfile]
     CO2MX: float
     H2OSTR: float
     # uppercase variants appears in TEST/JSON examples.
@@ -481,11 +481,13 @@ class Atmosphere(TypedDict, total=False):
     AYRANGFL: str
     E_MASS: float
     AIRMWT: float
+
+    # Only for parsing keywords.json. Actually describes entries of PROFILES.
     ATMPROFILE: AtmosphereProfile
 
 
 class AtmosphereProfile(TypedDict, total=False):
-    """Settings for `Atmosphere.ATMPROFILE`."""
+    """Entries `Atmosphere.PROFILES`."""
 
     TYPE: AtmosphereProfileType
     UNITS: AtmosphereProfileUnits
@@ -514,7 +516,7 @@ class Aerosol(TypedDict, total=False):
     CNOVAM: bool
     ARUSS: Literal[
         "USS", "SAP", "DEFAULT", "   ", "default"
-    ]  # lower 'default' in keywords.json
+    ]  # lowercase 'default' appears in keywords.json
     SAPFILE: str
     IVSA: bool
     ZCVSA: float
@@ -529,10 +531,12 @@ class Aerosol(TypedDict, total=False):
     # TODO Flexible aerosol options
     SSALB: object
     APLUS: Literal["", "  ", "A+"]
-    REGALT: object
-    PHASEFN: object
-    IREGSPC: object
-    REGSPC: object
+    REGALT: AerosolRegAlt
+    PHASEFN: AerosolPhaseFN
+    IREGSPC: list[AerosolRegSPC]
+
+    # Only for parsing keywords.json. Actually describes entries of IREGSPC.
+    REGSPC: AerosolRegSPC
 
     CTHIK: float
     CALT: float
@@ -544,8 +548,73 @@ class Aerosol(TypedDict, total=False):
     ASYMWD: float
     ASYMIP: float
 
-    CLDALT: object
-    CLDSPC: object
+    CLDALT: AerosolCloudAltitude
+    CLDSPC: AerosolCloudSPC
+
+
+class AerosolRegAlt(TypedDict, total=False):
+    """Settings for `Aerosol.REGALT`."""
+
+    ZAER1: tuple[float, float]
+    SCALE1: float
+
+    ZAER2: tuple[float, float]
+    SCALE2: float
+
+    ZAER3: tuple[float, float]
+    SCALE3: float
+
+    ZAER4: tuple[float, float]
+    SCALE4: float
+
+
+class AerosolPhaseFN(TypedDict, total=False):
+    """Settings for `Aerosol.PHASEFN`."""
+
+    NANGLS: int
+    NWLF: int
+    ANGF: list[float]
+    WLF: list[float]
+    AERPF: list[list[float]]
+
+
+class AerosolRegSPC(TypedDict, total=False):
+    """Settings for `Aerosol.IREGSPC`."""
+
+    IREG: Literal[0, 1, 2, 3, 4]
+    AWCCON: float
+    AERNAM: str
+    NARSPC: float
+    VARSPC: list[float]
+    EXTC: list[float]
+    ABSC: list[float]
+    ASYM: list[float]
+
+
+class AerosolCloudAltitude(TypedDict, total=False):
+    """Settings for `Aerosol.CLDALT`."""
+
+    NCRALT: int
+    ZPCLD: list[float]
+    CLD: list[float]
+    CLDICE: list[float]
+    RR: list[float]
+
+
+class AerosolCloudSPC(TypedDict, total=False):
+    """Settings for `Aerosol.CLDSPC`."""
+
+    NCRSPC: int
+    WAVLEN: list[float]
+    EXTC6: list[float]
+    ABSC6: list[float]
+    ASYM6: list[float]
+    EXTC7: list[float]
+    ABSC7: list[float]
+    ASYM7: list[float]
+    CFILE: str
+    CLDTYP: str
+    CIRTYP: str
 
 
 class Geometry(TypedDict, total=False):
@@ -563,14 +632,12 @@ class Geometry(TypedDict, total=False):
     BETA: float
     LENN: Literal[0, 1]
     BCKZEN: float
-    NLOS: object  # not documented?
-    MLOS: object
-    BENDING: float
-    NSEG: int
-    SURF_DIST: float
-    SEG_ALT: float
-    SEG_ZEN: float
-    SEG_LEN: float
+    NLOS: int  # not documented?
+    MLOS: list[GeometryLOS]
+
+    # Keywords BENDING through SEG_LEN appear to not be part of base Geometry structure,
+    # despite what the docs suggest. Rather, these keywords appear to be found
+    # inside MLOS and REFPATH.
 
     RAD_E: float
     CKRANG: float
@@ -585,8 +652,37 @@ class Geometry(TypedDict, total=False):
     TRUEAZ: float
     ANGLEM: float
 
-    REFPATH: object
-    LOSGEOMETRY: object
+    REFPATH: GeometryRefPath
+
+    # Only for parsing keywords.json. Actually describes entries of MLOS.
+    LOSGEOMETRY: GeometryLOS
+
+
+class GeometryLOS(TypedDict, total=False):
+    """Entries in `Geometry.MLOS`."""
+
+    H1ALT: float
+    H2ALT: float
+    HRANGE: float
+    CKRANG: float
+    OBSZEN: float
+    BCKZEN: float
+    BETA: float
+    AZ_INP: float
+    LENN: int
+
+    # Only for parsing keywords.json. Docs indicate only an output.
+    BENDING: float
+
+
+class GeometryRefPath(TypedDict, total=False):
+    """Settings for `Geometry.REFPATH`."""
+
+    NSEG: int
+    SURF_DIST: list[float]
+    SEG_ALT: list[float]
+    SEG_ZEN: list[float]
+    SEG_LEN: list[float]
 
 
 class Surface(TypedDict, total=False):
@@ -645,7 +741,26 @@ class Spectral(TypedDict, total=False):
     MLFLX: int
     VRFRAC: float
     SFWHM: float
-    LSUNFL: object
+    LSUNFL: Literal[
+        " ",
+        "T",
+        "t",
+        "F",
+        "f",
+        "1",
+        "2",
+        "3",
+        "4",
+        "5",
+        "6",
+        "7",
+        "8",
+        "9",
+        "A",
+        "B",
+        "C",
+        "D",
+    ]
     LBMNAM: Literal[" ", "f", "F", "t", "T", "4"]
     USRSUN: str
     BMNAME: str
