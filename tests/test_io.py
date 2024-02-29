@@ -6,6 +6,10 @@ import pymod6.output
 from pymod6.input import schema as mod_schema
 
 
+def test_load_input_defaults(modtran_env) -> None:
+    pymod6.io.load_input_defaults(modtran_env.data)
+
+
 @pytest.mark.parametrize("algo", list(mod_schema.RTAlgorithm))
 def test_acd_text_binary_match(modtran_exec, tmp_path, algo, simple_case) -> None:
     input_acd_text = (
