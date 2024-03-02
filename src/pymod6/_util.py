@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import functools
 import io
 import math
 from typing import (
@@ -14,6 +15,7 @@ from typing import (
     cast,
 )
 
+import pydantic
 from typing_extensions import TypeAlias, TypeGuard
 
 _K = TypeVar("_K")
@@ -195,3 +197,12 @@ def num_digits(x: int) -> int:
     if x == 0:
         return 1
     return 1 + int(math.log10(x))
+
+
+def make_adapter(schema: type[_V]) -> pydantic.TypeAdapter[_V]:
+    """Create and cache a `pydantic.TypeAdapter` instance for the given schema."""
+    return pydantic.TypeAdapter(schema)
+
+
+# Using functools.lru_cache as a decorator confuses mypy.
+make_adapter = functools.lru_cache(None)(make_adapter)  # type: ignore[assignment]

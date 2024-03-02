@@ -56,7 +56,7 @@ def make_case(
         )
 
     if validate:
-        case_dict = pydantic.TypeAdapter(_schema.CaseInput).validate_python(case_dict)
+        case_dict = _util.make_adapter(_schema.CaseInput).validate_python(case_dict)
 
     return case_dict
 
@@ -168,7 +168,7 @@ def merge_case_parts(
         ) from ex
 
     if validate:
-        case = pydantic.TypeAdapter(_schema.CaseInput).validate_python(case)
+        case = _util.make_adapter(_schema.CaseInput).validate_python(case)
 
     return case
 

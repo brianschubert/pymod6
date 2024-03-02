@@ -48,9 +48,11 @@ from __future__ import annotations
 import enum
 from typing import Any, Literal, Union
 
+import pydantic
 from pydantic import ConfigDict
 from typing_extensions import TypedDict
 
+# TODO: update stale exports
 __all__ = [
     # JSON input
     "JSONInput",

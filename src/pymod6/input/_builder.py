@@ -150,7 +150,7 @@ class ModtranInputBuilder:
         )
 
         if self._validate:
-            case_input = pydantic.TypeAdapter(_schema.CaseInput).validate_python(
+            case_input = _util.make_adapter(_schema.CaseInput).validate_python(
                 case_input
             )
 
@@ -241,7 +241,7 @@ class ModtranInputBuilder:
 
         input_json: _schema.JSONInput = _input_util.input_from_cases(self._cases)
         if self._validate:
-            return pydantic.TypeAdapter(_schema.JSONInput).validate_python(input_json)
+            return _util.make_adapter(_schema.JSONInput).validate_python(input_json)
 
         return input_json
 

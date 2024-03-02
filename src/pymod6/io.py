@@ -439,7 +439,7 @@ def read_json_input(
         input_dict = json.loads(s)
 
     if validate:
-        return pydantic.TypeAdapter(_schema.JSONInput).validate_python(input_dict)
+        return _util.make_adapter(_schema.JSONInput).validate_python(input_dict)
 
     return input_dict  # type: ignore
 
@@ -488,7 +488,7 @@ def load_input_defaults(
     for key, val in raw_dict.items():
         raw_dict[key] = _marshal_inner(val)
 
-    return pydantic.TypeAdapter(_schema.CaseInput).validate_python(raw_dict)
+    return _util.make_adapter(_schema.CaseInput).validate_python(raw_dict)
 
 
 class _CommentedJSONDecoder(json.JSONDecoder):
