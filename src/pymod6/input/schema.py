@@ -48,7 +48,6 @@ from __future__ import annotations
 import enum
 from typing import Any, Literal, Union
 
-import pydantic
 from pydantic import ConfigDict
 from typing_extensions import TypedDict
 
@@ -785,7 +784,7 @@ class FileOptions(TypedDict, total=False):
     CSVPRNT: str
     SLIPRNT: str
     JSONPRNT: str
-    JSONOPT: Union[
+    JSONOPT: Union[  # noqa: UP007
         JSONPrintOpt,
         Literal[
             "WRT_NONE",

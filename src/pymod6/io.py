@@ -9,10 +9,9 @@ import json
 import pathlib
 import re
 import struct
-from typing import Any, BinaryIO, ContextManager, Final, Literal, TextIO, cast, overload
+from typing import Any, BinaryIO, Final, Literal, TextIO, cast, overload
 
 import numpy as np
-import pydantic
 import spectral.io.envi  # type: ignore[import-untyped]
 import xarray as xr
 from numpy import typing as npt
@@ -206,8 +205,7 @@ def read_acd_binary(
     file: str | pathlib.Path | BinaryIO,
     *,
     return_algorithm: Literal[False],
-) -> np.ndarray[Any, Any]:
-    ...
+) -> np.ndarray[Any, Any]: ...
 
 
 @overload
@@ -215,15 +213,13 @@ def read_acd_binary(
     file: str | pathlib.Path | BinaryIO,
     *,
     return_algorithm: Literal[True],
-) -> tuple[np.ndarray[Any, Any], _schema.RTAlgorithm]:
-    ...
+) -> tuple[np.ndarray[Any, Any], _schema.RTAlgorithm]: ...
 
 
 @overload
 def read_acd_binary(
     file: str | pathlib.Path | BinaryIO,
-) -> np.ndarray[Any, Any]:
-    ...
+) -> np.ndarray[Any, Any]: ...
 
 
 def read_acd_binary(
@@ -253,11 +249,11 @@ def read_acd_binary(
         Inferred `RTAlgorithm` used to generate the ACD data. Only provided if `return_algorithm` is True.
     """
     # TODO handle multiple cases in one file?
-    cm: ContextManager[BinaryIO]
+    cm: contextlib.AbstractContextManager[BinaryIO]
     if _util.is_binary_io(file):
         cm = contextlib.nullcontext(file)
     else:
-        cm = open(cast("str | pathlib.Path", file), "rb")
+        cm = open(cast("str | pathlib.Path", file), "rb")  # noqa: PTH123, SIM115
 
     with cm as fd:
         buffer = fd.read()
@@ -266,7 +262,10 @@ def read_acd_binary(
     header = struct.unpack("ifiiiiiiiii", buffer[: _AtmoCorrectDataFileDtype.itemsize])
     header_checks = (
         (header[0] == ord("$"), "expected first word to be $"),
-        (header[1] == -9999.0, "expected -9999.0 sentinel in second word"),
+        (
+            header[1] == -9999.0,  # noqa: PLR2004
+            "expected -9999.0 sentinel in second word",
+        ),
         (header[2] == 0, "expected third word to be 0"),
         (
             header[3] in (0x01, 0x11, 0x21, 0x64),
@@ -363,11 +362,11 @@ def read_tape7_binary(
         depending on which spectral outputs are present.
 
     """
-    cm: ContextManager[BinaryIO]
+    cm: contextlib.AbstractContextManager[BinaryIO]
     if _util.is_binary_io(file):
         cm = contextlib.nullcontext(file)
     else:
-        cm = open(cast("str | pathlib.Path", file), "rb")
+        cm = open(cast("str | pathlib.Path", file), "rb")  # noqa: PTH123, SIM115
 
     with cm as fd:
         buffer = fd.read()
@@ -382,10 +381,10 @@ def read_tape7_binary(
             0x74: _Tape7RadianceFileDType,
             0xA0: _Tape7TransmittanceFileDType,
         }[row_delimiter]
-    except KeyError:
+    except KeyError as ex:
         raise ValueError(
             f"unable to determine spectra type - unknown delimiter byte 0x{row_delimiter:x}"
-        )
+        ) from ex
 
     contents = np.frombuffer(
         buffer,

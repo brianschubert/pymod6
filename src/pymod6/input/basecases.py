@@ -1,7 +1,7 @@
 """
 Prototypes for common input cases.
 
-This module defines partially-specified case-input dictionaries for common sets of 
+This module defines partially-specified case-input dictionaries for common sets of
 input parameters. These parts can be combined into a complete input case using
 `pymod6.input.merge_case_parts`. For example:
 ```python
@@ -29,9 +29,9 @@ pymod6.input.ModtranInputBuilder
 
 from typing import Final
 
-from .. import unit as _unit
-from . import _util as _input_util
-from . import schema as _schema
+from pymod6 import unit as _unit
+from pymod6.input import _util as _input_util
+from pymod6.input import schema as _schema
 
 RTOPTIONS_COMMON: Final[_schema.CaseInput] = _schema.CaseInput(
     RTOPTIONS=_schema.RTOptions(

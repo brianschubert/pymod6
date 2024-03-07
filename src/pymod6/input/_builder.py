@@ -3,12 +3,11 @@ from __future__ import annotations
 import datetime
 from typing import NamedTuple
 
-import pydantic
 from typing_extensions import Unpack
 
-from .. import _util
-from . import _util as _input_util
-from . import schema as _schema
+from pymod6 import _util
+from pymod6.input import _util as _input_util
+from pymod6.input import schema as _schema
 
 
 class ModtranInputBuilder:

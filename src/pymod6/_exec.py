@@ -7,14 +7,17 @@ import os
 import pathlib
 import subprocess
 import tempfile
-from collections.abc import Sequence
-from typing import Any, Literal, NamedTuple, Union, cast, overload
+from typing import TYPE_CHECKING, Any, Literal, NamedTuple, Union, cast, overload
 
 from typing_extensions import TypeAlias
 
 from pymod6 import ModtranEnv, _util
-from pymod6.input.schema import JSONInput
 from pymod6.output import ModtranOutputFiles
+
+if TYPE_CHECKING:
+    from collections.abc import Sequence
+
+    from pymod6.input.schema import JSONInput
 
 _PathLike: TypeAlias = Union[str, os.PathLike[str]]
 
@@ -203,8 +206,7 @@ class ModtranExecutable:
         *cli_args: str | bytes | os.PathLike[str] | os.PathLike[bytes],
         text: Literal[True],
         **kwargs: Any,
-    ) -> subprocess.CompletedProcess[str]:
-        ...
+    ) -> subprocess.CompletedProcess[str]: ...
 
     @overload
     def execute(
@@ -212,8 +214,7 @@ class ModtranExecutable:
         *cli_args: str | bytes | os.PathLike[str] | os.PathLike[bytes],
         text: Literal[None, False],
         **kwargs: Any,
-    ) -> subprocess.CompletedProcess[bytes]:
-        ...
+    ) -> subprocess.CompletedProcess[bytes]: ...
 
     @overload
     def execute(
@@ -221,8 +222,7 @@ class ModtranExecutable:
         *cli_args: str | bytes | os.PathLike[str] | os.PathLike[bytes],
         text: bool | None = None,
         **kwargs: Any,
-    ) -> subprocess.CompletedProcess[Any]:
-        ...
+    ) -> subprocess.CompletedProcess[Any]: ...
 
     def execute(
         self,
@@ -249,7 +249,9 @@ class ModtranExecutable:
         """
         # User provided env takes precedence.
         kwargs["env"] = self._env.to_environ() | kwargs.get("env", {})
-        return subprocess.run([self._env.exe, *cli_args], text=text, **kwargs)
+        return subprocess.run(  # noqa: PLW1510
+            [self._env.exe, *cli_args], text=text, **kwargs
+        )
 
 
 def _path_or_default_work_dir(p: _PathLike | None) -> pathlib.Path:

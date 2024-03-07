@@ -2,18 +2,19 @@
 Utilities for navigating output file placement in the filesystem.
 """
 
-
 from __future__ import annotations
 
 import pathlib
 from collections.abc import Sequence
 from dataclasses import dataclass
-from typing import overload
+from typing import TYPE_CHECKING, overload
 
 from typing_extensions import Self
 
 import pymod6.io
-from pymod6.input import schema as _schema
+
+if TYPE_CHECKING:
+    from pymod6.input import schema as _schema
 
 
 class ModtranOutputFiles(Sequence["CaseResultFilesNavigator"]):
@@ -44,6 +45,7 @@ class ModtranOutputFiles(Sequence["CaseResultFilesNavigator"]):
         cls,
         input_file: str | pathlib.Path,
         work_dir: str | pathlib.Path,
+        *,
         validate_json: bool = True,
     ) -> Self:
         """
@@ -72,7 +74,7 @@ class ModtranOutputFiles(Sequence["CaseResultFilesNavigator"]):
 
     @classmethod
     def load_directory(
-        cls, directory: str | pathlib.Path, validate_json: bool = True
+        cls, directory: str | pathlib.Path, *, validate_json: bool = True
     ) -> Self:
         """
         Load directory of case outputs.
@@ -155,12 +157,12 @@ class ModtranOutputFiles(Sequence["CaseResultFilesNavigator"]):
     # Sequence.__getitem__ overloads required by type checkers.
 
     @overload
-    def __getitem__(self, case_index: int, /) -> CaseResultFilesNavigator:
-        ...
+    def __getitem__(self, case_index: int, /) -> CaseResultFilesNavigator: ...
 
     @overload
-    def __getitem__(self, case_index: slice, /) -> Sequence[CaseResultFilesNavigator]:
-        ...
+    def __getitem__(
+        self, case_index: slice, /
+    ) -> Sequence[CaseResultFilesNavigator]: ...
 
     def __getitem__(
         self, case_index: int | slice, /
@@ -374,7 +376,7 @@ class CaseResultFilesNavigator:
         """
         Resolve filename of legacy output file.
         """
-        if (root := self._root_name()) != "":
+        if (root := self._root_name()) != "":  # noqa: SIM108
             name = f"{root}{tail}"
         else:
             name = blank_name

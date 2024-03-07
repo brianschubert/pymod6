@@ -170,10 +170,7 @@ def test_tape7_sli_binary_match(
             # Only present in .tp7 text and binary files. Not included in .csv, SLI, or JSON outputs.
             continue
 
-        if field_name == "freq":
-            sli_name = "wavelength"
-        else:
-            sli_name = field_name
+        sli_name = "wavelength" if field_name == "freq" else field_name
 
         np.testing.assert_allclose(
             binary_data[field_name], sli_data[sli_name], rtol=1e-8, atol=1e-14

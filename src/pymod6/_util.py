@@ -3,17 +3,8 @@ from __future__ import annotations
 import functools
 import io
 import math
-from typing import (
-    Any,
-    BinaryIO,
-    Mapping,
-    MutableMapping,
-    Sequence,
-    TextIO,
-    TypeVar,
-    Union,
-    cast,
-)
+from collections.abc import Mapping, MutableMapping, Sequence
+from typing import Any, BinaryIO, TextIO, TypeVar, Union, cast
 
 import pydantic
 from typing_extensions import TypeAlias, TypeGuard

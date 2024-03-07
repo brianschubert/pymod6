@@ -4,7 +4,6 @@ Tests for the existence and placement of output files.
 Note: this module should be named such that it runs before other test modules.
 That way, failures due to missing output files are obvious and visible.
 """
-import pathlib
 
 import pytest
 

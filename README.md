@@ -4,7 +4,7 @@
 
 3rd-party, file-I/O-based Python interface to [MODTRAN<sup>&reg;</sup> 6][MODTRAN].
 
-This package provides a functional wrapper to MODTRAN's command line interface. 
+This package provides a functional wrapper to MODTRAN's command line interface.
 It allows users to run MODTRAN with a chosen input file and then read the generated output
 files into Python.
 
@@ -23,7 +23,7 @@ Build local HTML documentation:
 $ cd docs
 $ make html
 
-# Open in browser (Linux) 
+# Open in browser (Linux)
 $ xdg-open ./html/index.html
 
 # Open in browser (MacOS)

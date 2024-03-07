@@ -4,6 +4,7 @@
 * `pymod6.output` - Utilities for navigating output file placement in the filesystem.
 * `pymod6.unit` - Unit conversion utilities.
 """
+
 from __future__ import annotations
 
 import importlib.metadata

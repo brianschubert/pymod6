@@ -1,6 +1,7 @@
 """
 Utilities for handling quantities expressed using a band model.
 """
+
 from __future__ import annotations
 
 from typing import Any

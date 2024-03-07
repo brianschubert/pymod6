@@ -22,7 +22,7 @@ isort = "^5.13.2"
 mypy = "^1.8.0"
 pytest = "^7.4.4"
 pytest-xdist = "^3.5.0"
-ruff = "^0.2.2"
+ruff = "^0.3.0"
 
 [tool.poetry.group.docs.dependencies]
 pdoc = "^14.4.0"
@@ -47,3 +47,91 @@ testpaths = ["src", "tests"]
 # pyright config.
 [tool.pyright]
 reportTypedDictNotRequiredAccess = false
+
+# ruff config.
+[tool.ruff]
+# Match black line length.
+line-length = 88
+target-version = "py39"
+fix = true
+# Consider imports for packages in 'src' to be first party imports.
+src = ["src"]
+
+# ruff lint settings.
+[tool.ruff.lint]
+# Select active lint rules.
+# https://docs.astral.sh/ruff/rules/
+select = [
+    # pyflakes
+    "F",
+    # pycodestyle
+    "E", "W",
+    # isort
+    "I",
+    # pep8-naming
+    "N",
+    # pyupgrade
+    "UP",
+    # flake8-2020
+    "YTT",
+    # flake-8-blind-except
+    "BLE",
+    # flake8-boolean-trap
+    "FBT",
+    # flake8-bugbear
+    "B",
+    # flake8-builtins
+    "A",
+    # flake8-comprehensions
+    "C4",
+    # flake8-debugger
+    "T10",
+    # flake8-executable
+    "EXE",
+    # flake8-future-annotations
+    "FA",
+    # flake8-import-conventions
+    "ICN",
+    # flake8-pie
+    "PIE",
+    # flake8-pyi
+    "PYI",
+    # flake8-pytest-style
+    "PT",
+    # flake8-quotes
+    "Q",
+    # flake8-return
+    "RET",
+    # flake8-simplify
+    "SIM",
+    # flake8-tidy-imports
+    "TID",
+    # flake8-type-checking
+    "TCH",
+    # flake8-unused-arguments
+    "ARG",
+    # flake8-use-pathlib
+    "PTH",
+    # pylint
+    "PL",
+    # flynt
+    "FLY",
+    # NumPy-specific rules
+    "NPY",
+    # Perflint
+    "PERF",
+    # Ruff-specific rules
+    "RUF",
+]
+
+ignore = [
+    # Line length. Formatter line length can sometimes be exceeded (e.g. doctests).
+    "E501",
+    # Too many arguments.
+    "PLR0913",
+]
+
+unfixable = [
+    # Unused noqa
+    "RUF100",
+]

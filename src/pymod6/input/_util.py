@@ -6,14 +6,15 @@ from __future__ import annotations
 
 import copy
 import itertools
-from collections.abc import Collection
-from typing import Any, Iterable, Iterator, cast
+from typing import TYPE_CHECKING, Any, cast
 
 import numpy as np
-import pydantic
 
 from pymod6 import _util
 from pymod6.input import schema as _schema
+
+if TYPE_CHECKING:
+    from collections.abc import Collection, Iterable, Iterator
 
 
 def make_case(

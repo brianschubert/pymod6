@@ -1,10 +1,13 @@
 from __future__ import annotations
 
-import pathlib
+from typing import TYPE_CHECKING
 
 import pytest
 
 import pymod6
+
+if TYPE_CHECKING:
+    import pathlib
 
 
 @pytest.fixture(scope="session")
@@ -75,7 +78,7 @@ class _Helpers:
 
         assert result.process.returncode == 0
         assert "Error" not in result.process.stdout
-        assert "" == result.process.stderr
+        assert result.process.stderr == ""
 
         [case_files] = result.cases_output_files
         _assert_all_named(case_files)

@@ -1,6 +1,7 @@
 """
 Tests for examples in `<install root>/TEST/JSON`.
 """
+
 import os
 import pathlib
 import shutil
@@ -13,7 +14,7 @@ import pymod6
 if TYPE_CHECKING:
 
     @pytest.fixture(scope="module")
-    def example_file() -> pathlib.Path:
+    def example_file() -> pathlib.Path:  # noqa: PT004
         ...
 
 
@@ -24,7 +25,7 @@ def example_json(example_file) -> pymod6.input.schema.JSONInput:
 
 @pytest.fixture(scope="module")
 def example_outputs(
-    modtran_exec, example_file, example_json, tmp_path_factory, helpers
+    modtran_exec, example_file, example_json, tmp_path_factory
 ) -> pymod6.output.ModtranOutputFiles:
     if os.environ.get("TEST_EXAMPLES") != "1":
         pytest.skip("set TEST_EXAMPLE=1 in the environment to run examples")
@@ -75,7 +76,7 @@ def example_outputs(
     result = modtran_exec.run(example_json, work_dir=run_dir)
     assert result.process.returncode == 0
     assert "Error" not in result.process.stdout
-    assert "" == result.process.stderr
+    assert result.process.stderr == ""
 
     return result.cases_output_files
 
@@ -128,5 +129,4 @@ def _find_example_files() -> list[pathlib.Path]:
             if not example_files:
                 raise RuntimeError(f"found no example files in '{test_root}'")
             return example_files
-    else:
-        raise RuntimeError(f"unable to locate examples directory in '{install_root}'")
+    raise RuntimeError(f"unable to locate examples directory in '{install_root}'")

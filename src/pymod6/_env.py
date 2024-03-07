@@ -7,11 +7,15 @@ import pathlib
 import re
 import string
 from dataclasses import dataclass
-from typing import ContextManager, Final, Mapping, TextIO, cast
+from typing import TYPE_CHECKING, Final, TextIO, cast
 
 from typing_extensions import Self
 
 from . import _util
+
+if TYPE_CHECKING:
+    from collections.abc import Mapping
+
 
 # "Best effort" regex for extracting simple environment variables exports from Bourne
 # family shell files.
@@ -127,11 +131,11 @@ class ModtranEnv:
         >>> ModtranEnv.from_shell_file(shell_file, substitute=True)
         ModtranEnv(exe=...Path('/base/path/exe'), data=...Path('/base/path/DATA'), extra={'MODTRAN_BASE': '/base/path'})
         """
-        cm: ContextManager[TextIO]
+        cm: contextlib.AbstractContextManager[TextIO]
         if _util.is_text_io(file):
             cm = contextlib.nullcontext(file)
         else:
-            cm = open(cast("str | pathlib.Path", file), "r")
+            cm = open(cast("str | pathlib.Path", file))  # noqa: PTH123, SIM115
 
         with cm as fd:
             text = fd.read()
