@@ -12,7 +12,7 @@ import struct
 from typing import Any, BinaryIO, Final, Literal, TextIO, cast, overload
 
 import numpy as np
-import spectral.io.envi  # type: ignore[import-untyped]
+import spectral.io.envi
 import xarray as xr
 from numpy import typing as npt
 
@@ -180,7 +180,7 @@ _COMMENT_PATTERN: Final = re.compile(
 
 def read_acd_text(
     file: pathlib.Path | TextIO, *, dtype: npt.DTypeLike = AtmoCorrectDataDType
-) -> np.ndarray[Any, Any]:
+) -> npt.NDArray[Any]:
     """
     Read ASCII atmospheric correction data file (`.acd`).
 
@@ -205,7 +205,7 @@ def read_acd_binary(
     file: str | pathlib.Path | BinaryIO,
     *,
     return_algorithm: Literal[False],
-) -> np.ndarray[Any, Any]: ...
+) -> npt.NDArray[Any]: ...
 
 
 @overload
@@ -213,20 +213,20 @@ def read_acd_binary(
     file: str | pathlib.Path | BinaryIO,
     *,
     return_algorithm: Literal[True],
-) -> tuple[np.ndarray[Any, Any], _schema.RTAlgorithm]: ...
+) -> tuple[npt.NDArray[Any], _schema.RTAlgorithm]: ...
 
 
 @overload
 def read_acd_binary(
     file: str | pathlib.Path | BinaryIO,
-) -> np.ndarray[Any, Any]: ...
+) -> npt.NDArray[Any]: ...
 
 
 def read_acd_binary(
     file: str | pathlib.Path | BinaryIO,
     *,
     return_algorithm: bool = False,
-) -> np.ndarray[Any, Any] | tuple[np.ndarray[Any, Any], _schema.RTAlgorithm]:
+) -> npt.NDArray[Any] | tuple[npt.NDArray[Any], _schema.RTAlgorithm]:
     """
     Read binary atmospheric correction data file (`_b.acd`).
 
@@ -345,7 +345,7 @@ def read_sli(file: str | pathlib.Path) -> xr.Dataset:
 
 def read_tape7_binary(
     file: str | pathlib.Path | BinaryIO,
-) -> np.ndarray[Any, Any]:
+) -> npt.NDArray[Any]:
     """
     Read spectra outputs from binary tape7 file (`_b.tp7`).
 

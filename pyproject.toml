@@ -38,6 +38,13 @@ profile = "black"
 # mypy config.
 [tool.mypy]
 strict = true
+plugins = ["numpy.typing.mypy_plugin"]
+files = ["src/pymod6"]
+
+# Ignore untyped packages.
+[[tool.mypy.overrides]]
+module = "spectral.*"
+ignore_missing_imports = true
 
 # pytest config
 [tool.pytest.ini_options]

@@ -15,8 +15,8 @@ def combine_at(
     indices: npt.ArrayLike,
     axis: int = 0,
     dtype: npt.DTypeLike | None = None,
-    out: np.ndarray[Any, Any] | None = None,
-) -> np.ndarray[Any, Any]:
+    out: npt.NDArray[Any] | None = None,
+) -> npt.NDArray[Any]:
     """
     Combine weighted bandmodel components over the slices in `indices`.
 
@@ -55,8 +55,8 @@ def combine_by_k_int(
     k_int: npt.ArrayLike,
     axis: int = 0,
     dtype: npt.DTypeLike | None = None,
-    out: np.ndarray[Any, Any] | None = None,
-) -> np.ndarray[Any, Any]:
+    out: npt.NDArray[Any] | None = None,
+) -> npt.NDArray[Any]:
     """
     Combine weighted bandmodel components using intra-band indices `k_int`.
 
